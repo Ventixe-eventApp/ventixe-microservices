@@ -22,16 +22,24 @@ public class EventIndexer
         _connectionString = config.GetConnectionString("SqlConnection")
             ?? throw new ArgumentNullException("SqlConnection missing");
         _logger = logger;
-        
+        _qdrantService = qdrantService;
+
     }
 
     public async Task ProcessAndIndexEventsAsync()
     {
-        _logger.LogInformation("Fetching events from SQL Server...");
-
+   
+        _logger.LogInformation("Step 1: Fetching events from SQL Server...");
         using var connection = new SqlConnection(_connectionString);
         var sql = "SELECT Id, EventName, ArtistName, Description, Location, StartDate FROM Events";
-        var events = await connection.QueryAsync<EventModel>(sql);
+        var events = (await connection.QueryAsync<EventModel>(sql)).ToList();
+
+        if (!events.Any()) return;
+
+        _logger.LogInformation("Step 2: Ensuring Qdrant collection exists...");
+        await _qdrantService.EnsureCollectionExistsAsync();
+
+        _logger.LogInformation("Step 3: Indexing {Count} events one by one with delay...", events.Count);
 
         foreach (var ev in events)
         {
@@ -39,35 +47,33 @@ public class EventIndexer
             {
                 string textToEmbed = ev.ToEmbeddingText();
 
-                // Updated method call
+            
                 var embeddings = await _embeddingGenerator.GenerateAsync(new[] { textToEmbed });
                 var vector = embeddings[0].Vector.ToArray();
 
                 var metadata = new Dictionary<string, string>
-                {
-                    { "EventName", ev.EventName },
-                    { "ArtistName", ev.ArtistName },
-                    { "Location", ev.Location },
-                    { "StartDate", ev.StartDate.ToString("yyyy-MM-dd") }
-                };
+            {
+                { "EventName", ev.EventName },
+                { "ArtistName", ev.ArtistName },
+                { "Location", ev.Location },
+                { "StartDate", ev.StartDate.ToString("yyyy-MM-dd") }
+            };
 
                 if (Guid.TryParse(ev.Id, out var guid))
                 {
                     await _qdrantService.UpsertEventAsync(guid, vector, metadata);
-                    _logger.LogInformation("Indexed event: {EventName}", ev.EventName);
+                    _logger.LogInformation("Successfully indexed: {EventName}", ev.EventName);
                 }
-                else
-                {
-                    _logger.LogWarning("Invalid GUID for event ID: {EventId}", ev.Id);
-                }   
 
-
-
+             
+                await Task.Delay(2000);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to index {EventName}", ev.EventName);
+                _logger.LogError(ex, "Failed to index {EventName}. Waiting 5 seconds before retry...", ev.EventName);
+                await Task.Delay(5000); 
             }
         }
+        _logger.LogInformation("Indexing process finished.");
     }
 }

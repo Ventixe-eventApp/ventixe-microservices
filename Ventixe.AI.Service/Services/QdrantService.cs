@@ -10,18 +10,20 @@ public class QdrantService
     private readonly ILogger<QdrantService> _logger;
 
     public QdrantService(IConfiguration config, ILogger<QdrantService> logger)
-    {
+    { 
+        _logger = logger;
         // These keys match your Docker environment variables: Qdrant__Host and Qdrant__Port
-        var host = config["Qdrant:Host"] ?? "localhost";
-        var portStr = config["Qdrant:Port"] ?? "6333";
+        var host = config["Qdrant:Host"] ?? config["Qdrant__Host"] ?? "qdrant";
+        var portStr = config["Qdrant:Port"] ?? config["Qdrant__Port"] ?? "6334";
 
         if (!int.TryParse(portStr, out var port))
         {
             port = 6333;
         }
 
+        _logger.LogInformation("Connecting to Qdrant at {Host}:{Port}", host, port);
         _client = new QdrantClient(host, port);
-        _logger = logger;
+      
     }
 
     /// <summary>

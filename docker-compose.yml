@@ -37,7 +37,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - Qdrant__Host=qdrant
-      - Qdrant__Port=6333
+      - Qdrant__Port=6334
       - Google__ApiKey=${GOOGLE_API_KEY}
       # Kopplingen till SQL-servern 
       - ConnectionStrings__SqlConnection=Server=sql-db;Database=EventDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
@@ -148,6 +148,8 @@ services:
       - MSSQL_SA_PASSWORD=${SQL_PASSWORD}
     ports:
       - "1435:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
     healthcheck:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${SQL_PASSWORD}", "-C", "-Q", "SELECT 1"]
       interval: 5s
@@ -161,3 +163,6 @@ services:
       - "6334:6334"
     volumes:
       - ./qdrant_data:/qdrant/storage
+volumes:
+  sql_data:
+  qdrant_data:

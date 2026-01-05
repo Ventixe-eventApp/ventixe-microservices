@@ -11,6 +11,7 @@ builder.Services.AddOpenApi();
 
 // 2. AI Configuration & Embedding Generator
 var googleApiKey = builder.Configuration["Google:ApiKey"]
+    ?? builder.Configuration["Google__ApiKey"]
     ?? throw new Exception("Google:ApiKey is missing in configuration!");
 
 
@@ -32,15 +33,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
-// 5. Trigger Endpoint
-app.MapPost("/api/ai/index", async (EventIndexer indexer) =>
-{
-    await indexer.ProcessAndIndexEventsAsync();
-    return Results.Ok("Indexing process started.");
-});
 
 app.Run();
