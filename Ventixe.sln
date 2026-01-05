@@ -28,6 +28,29 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.AI.Service", "Ventixe.AI.Service\Ventixe.AI.Service.csproj", "{D1BB556C-423B-4E3B-B2F6-E72056636330}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{5A099269-E80F-4112-BCC6-4362321DA08F}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "ventixereact", "ventixereact\", "{F21EF860-5DAD-89F1-702C-41D9A114063A}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_61281"
+		Debug.AspNetCompiler.PhysicalPath = "ventixereact\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_61281\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_61281"
+		Release.AspNetCompiler.PhysicalPath = "ventixereact\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_61281\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "61281"
+		SlnRelativePath = "ventixereact\"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +89,10 @@ Global
 		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F21EF860-5DAD-89F1-702C-41D9A114063A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F21EF860-5DAD-89F1-702C-41D9A114063A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F21EF860-5DAD-89F1-702C-41D9A114063A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{F21EF860-5DAD-89F1-702C-41D9A114063A}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,6 +104,7 @@ Global
 		{6853A66D-D93D-E683-C39B-F9BFD2183233} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
 		{C854D3B1-26EE-1BC8-FDD9-F15261EEB034} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
 		{26097E75-3B65-179E-D8AA-A2E409A740B1} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+		{F21EF860-5DAD-89F1-702C-41D9A114063A} = {5A099269-E80F-4112-BCC6-4362321DA08F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {52D62465-82B7-4D52-AC60-5E7D61098B12}
