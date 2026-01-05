@@ -1,0 +1,163 @@
+version: '3.4'
+
+services:
+  ventixe.frontend:
+    build:
+      context: ./ventixereact 
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+
+  ventixe.account:
+    image: ${DOCKER_REGISTRY-}ventixeaccount
+    build:
+      context: .
+      dockerfile: account-service/Presentation/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=AccountDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
+    ports:
+      - "5001:8080"
+      - "5002:8081"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+    depends_on:
+      sql-db:
+        condition: service_healthy
+
+  ventixe.ai:
+    image: ${DOCKER_REGISTRY-}ventixeai
+    build:
+      context: .
+      dockerfile: Ventixe.AI.Service/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Qdrant__Host=qdrant
+      - Qdrant__Port=6333
+      - Google__ApiKey=${GOOGLE_API_KEY}
+      # Kopplingen till SQL-servern 
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=EventDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
+    ports:
+      - "5011:8080"
+    depends_on:
+      - qdrant
+      - sql-db
+  ventixe.auth:
+    image: ${DOCKER_REGISTRY-}ventixeauth
+    build:
+      context: .
+      dockerfile: auth-service/Presentation/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+ 
+    ports:
+      - "7001:8080"
+      - "7002:8081"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+
+  ventixe.booking:
+    image: ${DOCKER_REGISTRY-}ventixebooking
+    build:
+      context: .
+      dockerfile: booking-service/Presentation/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=BookingDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
+    ports:
+      - "5003:8080"
+      - "5004:8081"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+    depends_on:
+      sql-db:
+        condition: service_healthy
+
+
+  ventixe.event:
+    image: ${DOCKER_REGISTRY-}ventixeevent
+    build:
+      context: .
+      dockerfile: event-service/Presentation/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=EventDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
+    ports:
+      - "5005:8080"
+      - "5006:8081"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+    depends_on:
+      sql-db:
+        condition: service_healthy
+
+
+  ventixe.user:
+    image: ${DOCKER_REGISTRY-}ventixeuser
+    build:
+      context: .
+      dockerfile: user-service/Presentation/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=UserDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
+    ports:
+      - "5007:8080"
+      - "5008:8081"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+    depends_on:
+      sql-db:
+        condition: service_healthy
+
+  ventixe.verify:
+    image: ${DOCKER_REGISTRY-}ventixeverify
+    build:
+      context: .
+      dockerfile: verification-provider-service/Presentation/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5009:8080"
+      - "5010:8081"
+    volumes:
+      - ${USERPROFILE}\.aspnet\https:/https:ro
+
+  sql-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SQL_PASSWORD}
+    ports:
+      - "1435:1433"
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${SQL_PASSWORD}", "-C", "-Q", "SELECT 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./qdrant_data:/qdrant/storage

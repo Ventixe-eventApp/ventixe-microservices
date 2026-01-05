@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "ventixe.account": "StartDebugging",
+        "ventixe.auth": "StartDebugging",
+        "ventixe.booking": "StartDebugging",
+        "ventixe.event": "StartDebugging",
+        "ventixe.user": "StartDebugging",
+        "ventixe.verify": "StartDebugging"
+      }
+    }
+  }
+}

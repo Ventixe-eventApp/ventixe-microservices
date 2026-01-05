@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11312.210
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{D40BC549-2B09-4784-8D98-10CDAC8877BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.Account", "account-service\Presentation\Ventixe.Account.csproj", "{87811FCA-A899-C219-D03C-934CCBDA0BAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.Auth", "auth-service\Presentation\Ventixe.Auth.csproj", "{07879DE3-2DE1-B7C8-6A72-B74A0C546CD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.Booking", "booking-service\Presentation\Ventixe.Booking.csproj", "{58F4571D-7CBC-113C-4D38-6A45E463A7AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.Event", "event-service\Presentation\Ventixe.Event.csproj", "{6853A66D-D93D-E683-C39B-F9BFD2183233}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.User", "user-service\Presentation\Ventixe.User.csproj", "{C854D3B1-26EE-1BC8-FDD9-F15261EEB034}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.Verify", "verification-provider-service\Presentation\Ventixe.Verify.csproj", "{26097E75-3B65-179E-D8AA-A2E409A740B1}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B2023D0F-4F41-4C2A-8171-96C9E450686E}"
+	ProjectSection(SolutionItems) = preProject
+		.env = .env
+		.env.example = .env.example
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ventixe.AI.Service", "Ventixe.AI.Service\Ventixe.AI.Service.csproj", "{D1BB556C-423B-4E3B-B2F6-E72056636330}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{87811FCA-A899-C219-D03C-934CCBDA0BAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87811FCA-A899-C219-D03C-934CCBDA0BAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87811FCA-A899-C219-D03C-934CCBDA0BAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87811FCA-A899-C219-D03C-934CCBDA0BAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07879DE3-2DE1-B7C8-6A72-B74A0C546CD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07879DE3-2DE1-B7C8-6A72-B74A0C546CD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07879DE3-2DE1-B7C8-6A72-B74A0C546CD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07879DE3-2DE1-B7C8-6A72-B74A0C546CD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58F4571D-7CBC-113C-4D38-6A45E463A7AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58F4571D-7CBC-113C-4D38-6A45E463A7AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58F4571D-7CBC-113C-4D38-6A45E463A7AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58F4571D-7CBC-113C-4D38-6A45E463A7AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6853A66D-D93D-E683-C39B-F9BFD2183233}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6853A66D-D93D-E683-C39B-F9BFD2183233}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6853A66D-D93D-E683-C39B-F9BFD2183233}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6853A66D-D93D-E683-C39B-F9BFD2183233}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C854D3B1-26EE-1BC8-FDD9-F15261EEB034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C854D3B1-26EE-1BC8-FDD9-F15261EEB034}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C854D3B1-26EE-1BC8-FDD9-F15261EEB034}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C854D3B1-26EE-1BC8-FDD9-F15261EEB034}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26097E75-3B65-179E-D8AA-A2E409A740B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26097E75-3B65-179E-D8AA-A2E409A740B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26097E75-3B65-179E-D8AA-A2E409A740B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26097E75-3B65-179E-D8AA-A2E409A740B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1BB556C-423B-4E3B-B2F6-E72056636330}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{87811FCA-A899-C219-D03C-934CCBDA0BAA} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+		{07879DE3-2DE1-B7C8-6A72-B74A0C546CD5} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+		{58F4571D-7CBC-113C-4D38-6A45E463A7AE} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+		{6853A66D-D93D-E683-C39B-F9BFD2183233} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+		{C854D3B1-26EE-1BC8-FDD9-F15261EEB034} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+		{26097E75-3B65-179E-D8AA-A2E409A740B1} = {D40BC549-2B09-4784-8D98-10CDAC8877BF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {52D62465-82B7-4D52-AC60-5E7D61098B12}
+	EndGlobalSection
+EndGlobal
