@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   ventixe.frontend:
     build:
@@ -39,13 +37,13 @@ services:
       - Qdrant__Host=qdrant
       - Qdrant__Port=6334
       - Google__ApiKey=${GOOGLE_API_KEY}
-      # Kopplingen till SQL-servern 
       - ConnectionStrings__SqlConnection=Server=sql-db;Database=EventDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
     ports:
       - "5011:8080"
     depends_on:
-      - qdrant
-      - sql-db
+      sql-db:
+        condition: service_healthy
+
   ventixe.auth:
     image: ${DOCKER_REGISTRY-}ventixeauth
     build:
@@ -56,12 +54,15 @@ services:
       - ASPNETCORE_URLS=https://+:8081;http://+:8080
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
- 
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=AuthDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
     ports:
       - "7001:8080"
       - "7002:8081"
     volumes:
       - ${USERPROFILE}\.aspnet\https:/https:ro
+    depends_on:
+      sql-db:
+        condition: service_healthy
 
   ventixe.booking:
     image: ${DOCKER_REGISTRY-}ventixebooking
@@ -83,7 +84,6 @@ services:
       sql-db:
         condition: service_healthy
 
-
   ventixe.event:
     image: ${DOCKER_REGISTRY-}ventixeevent
     build:
@@ -103,7 +103,6 @@ services:
     depends_on:
       sql-db:
         condition: service_healthy
-
 
   ventixe.user:
     image: ${DOCKER_REGISTRY-}ventixeuser
@@ -135,11 +134,15 @@ services:
       - ASPNETCORE_URLS=https://+:8081;http://+:8080
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__SqlConnection=Server=sql-db;Database=VerifyDb;User Id=sa;Password=${SQL_PASSWORD};Encrypt=False;
     ports:
       - "5009:8080"
       - "5010:8081"
     volumes:
       - ${USERPROFILE}\.aspnet\https:/https:ro
+    depends_on:
+      sql-db:
+        condition: service_healthy
 
   sql-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -162,7 +165,8 @@ services:
       - "6333:6333"
       - "6334:6334"
     volumes:
-      - ./qdrant_data:/qdrant/storage
+      - qdrant_data:/qdrant/storage
+
 volumes:
   sql_data:
   qdrant_data:

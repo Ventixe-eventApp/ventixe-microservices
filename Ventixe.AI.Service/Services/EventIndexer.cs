@@ -39,41 +39,34 @@ public class EventIndexer
         _logger.LogInformation("Step 2: Ensuring Qdrant collection exists...");
         await _qdrantService.EnsureCollectionExistsAsync();
 
-        _logger.LogInformation("Step 3: Indexing {Count} events one by one with delay...", events.Count);
+        _logger.LogInformation("Step 3: Creating embeddings for all {Count} events in one batch...", events.Count);
 
-        foreach (var ev in events)
+        try
         {
-            try
-            {
-                string textToEmbed = ev.ToEmbeddingText();
+            // Skapa en lista med all text som ska omvandlas
+            var texts = events.Select(e => e.ToEmbeddingText()).ToList();
 
-            
-                var embeddings = await _embeddingGenerator.GenerateAsync(new[] { textToEmbed });
-                var vector = embeddings[0].Vector.ToArray();
+            // SKICKA ALLT SAMTIDIGT - Detta är bara 1 anrop mot Google!
+            var embeddings = await _embeddingGenerator.GenerateAsync(texts);
 
-                var metadata = new Dictionary<string, string>
+            for (int i = 0; i < events.Count; i++)
             {
-                { "EventName", ev.EventName },
-                { "ArtistName", ev.ArtistName },
-                { "Location", ev.Location },
-                { "StartDate", ev.StartDate.ToString("yyyy-MM-dd") }
-            };
+                var vector = embeddings[i].Vector.ToArray();
+                var ev = events[i];
 
                 if (Guid.TryParse(ev.Id, out var guid))
                 {
+                    var metadata = new Dictionary<string, string> { { "EventName", ev.EventName } /* ... rest of metadata */ };
                     await _qdrantService.UpsertEventAsync(guid, vector, metadata);
                     _logger.LogInformation("Successfully indexed: {EventName}", ev.EventName);
                 }
-
-             
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to index {EventName}. Waiting 5 seconds before retry...", ev.EventName);
-                await Task.Delay(5000); 
             }
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Batch indexing failed.");
+        }
+    
         _logger.LogInformation("Indexing process finished.");
     }
 }

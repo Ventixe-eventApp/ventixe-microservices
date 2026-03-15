@@ -1,0 +1,605 @@
+time="2026-03-15T18:21:17+01:00" level=warning msg="C:\\Projects\\Ventixe\\backends\\Ventixe-All\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container ventixe-all-ventixe.auth-1 Creating 
+ Container ventixe-all-ventixe.verify-1 Creating 
+ Container ventixe-all-ventixe.frontend-1 Creating 
+ Container ventixe-all-sql-db-1 Recreate 
+ Container ventixe-all-ventixe.frontend-1 Created 
+ Container ventixe-all-ventixe.verify-1 Created 
+ Container ventixe-all-ventixe.auth-1 Created 
+ Container ventixe-all-sql-db-1 Recreated 
+ Container ventixe-all-ventixe.booking-1 Creating 
+ Container ventixe-all-ventixe.account-1 Creating 
+ Container ventixe-all-ventixe.event-1 Creating 
+ Container ventixe-all-ventixe.user-1 Creating 
+ Container ventixe-all-ventixe.account-1 Created 
+ Container ventixe-all-ventixe.event-1 Created 
+ Container ventixe-all-ventixe.booking-1 Created 
+ Container ventixe-all-ventixe.user-1 Created 
+Attaching to qdrant-1, sql-db-1, ventixe.account-1, ventixe.ai-1, ventixe.auth-1, ventixe.booking-1, ventixe.event-1, ventixe.frontend-1, ventixe.user-1, ventixe.verify-1
+ Container ventixe-all-ventixe.auth-1 Starting 
+ Container ventixe-all-ventixe.verify-1 Starting 
+ Container ventixe-all-qdrant-1 Starting 
+ Container ventixe-all-sql-db-1 Starting 
+ Container ventixe-all-ventixe.frontend-1 Starting 
+ Container ventixe-all-qdrant-1 Started 
+ Container ventixe-all-sql-db-1 Started 
+ Container ventixe-all-sql-db-1 Waiting 
+ Container ventixe-all-ventixe.ai-1 Starting 
+ Container ventixe-all-sql-db-1 Waiting 
+ Container ventixe-all-sql-db-1 Waiting 
+ Container ventixe-all-sql-db-1 Waiting 
+sql-db-1  | SQL Server 2022 will run as non-root by default.
+sql-db-1  | This container is running as user mssql.
+sql-db-1  | Your master database file is owned by mssql.
+sql-db-1  | To learn more visit https://go.microsoft.com/fwlink/?linkid=2099216.
+ Container ventixe-all-ventixe.frontend-1 Started 
+qdrant-1  |            _                 _    
+qdrant-1  |   __ _  __| |_ __ __ _ _ __ | |_  
+qdrant-1  |  / _` |/ _` | '__/ _` | '_ \| __| 
+qdrant-1  | | (_| | (_| | | | (_| | | | | |_  
+qdrant-1  |  \__, |\__,_|_|  \__,_|_| |_|\__| 
+qdrant-1  |     |_|                           
+qdrant-1  | 
+qdrant-1  | Version: 1.16.3, build: bd49f45a
+qdrant-1  | Access web UI at http://localhost:6333/dashboard
+qdrant-1  | 
+ Container ventixe-all-ventixe.verify-1 Started 
+qdrant-1  | 2026-03-15T17:21:18.536615Z ERROR qdrant: Filesystem check failed for storage path ./storage. Details: Unrecognized filesystem - cannot guarantee data safety
+qdrant-1  | 2026-03-15T17:21:18.539892Z  INFO storage::content_manager::consensus::persistent: Loading raft state from ./storage/raft_state.json
+qdrant-1  | 2026-03-15T17:21:18.580953Z  INFO storage::content_manager::toc: Loading collection: events
+ Container ventixe-all-ventixe.auth-1 Started 
+ Container ventixe-all-ventixe.ai-1 Started 
+qdrant-1  | 2026-03-15T17:21:18.843582Z  WARN memory::mmap_ops: Not using multi-mmap due to limited support, you may see reduced performance
+qdrant-1  | 2026-03-15T17:21:19.116175Z  INFO collection::shards::local_shard: Recovering shard ./storage/collections/events/0: 0/1 (0%)
+qdrant-1  | 2026-03-15T17:21:19.120325Z  INFO collection::shards::local_shard: Recovered collection events: 1/1 (100%)
+qdrant-1  | 2026-03-15T17:21:19.133062Z  INFO qdrant: Distributed mode disabled
+qdrant-1  | 2026-03-15T17:21:19.133118Z  INFO qdrant: Telemetry reporting enabled, id: 8f18d1fd-702c-409a-969c-0d15b7462da7
+ventixe.verify-1  | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.verify-1  |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS '8081'. Binding to values defined by URLS instead 'https://+:8081;http://+:8080'.
+ventixe.auth-1    | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.auth-1    |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS '8081'. Binding to values defined by URLS instead 'https://+:8081;http://+:8080'.
+qdrant-1          | 2026-03-15T17:21:19.236779Z  INFO qdrant::tonic: Qdrant gRPC listening on 6334
+qdrant-1          | 2026-03-15T17:21:19.236810Z  INFO qdrant::tonic: TLS disabled for gRPC API
+qdrant-1          | 2026-03-15T17:21:19.236829Z  INFO qdrant::actix: TLS disabled for REST API
+qdrant-1          | 2026-03-15T17:21:19.237560Z  INFO qdrant::actix: Qdrant HTTP listening on 6333
+qdrant-1          | 2026-03-15T17:21:19.237603Z  INFO actix_server::builder: starting 15 workers
+qdrant-1          | 2026-03-15T17:21:19.237613Z  INFO actix_server::server: Actix runtime found; starting in Actix runtime
+qdrant-1          | 2026-03-15T17:21:19.237620Z  INFO actix_server::server: starting service: "actix-web-service-0.0.0.0:6333", workers: 15, listening on: 0.0.0.0:6333
+ventixe.ai-1      | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.ai-1      |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS ''. Binding to values defined by URLS instead 'http://+:8080'.
+ventixe.auth-1    | info: Microsoft.Hosting.Lifetime[14]
+ventixe.auth-1    |       Now listening on: https://[::]:8081
+ventixe.verify-1  | info: Microsoft.Hosting.Lifetime[14]
+ventixe.verify-1  |       Now listening on: https://[::]:8081
+ventixe.verify-1  | info: Microsoft.Hosting.Lifetime[14]
+ventixe.verify-1  |       Now listening on: http://[::]:8080
+ventixe.verify-1  | info: Microsoft.Hosting.Lifetime[0]
+ventixe.verify-1  |       Application started. Press Ctrl+C to shut down.
+ventixe.verify-1  | info: Microsoft.Hosting.Lifetime[0]
+ventixe.verify-1  |       Hosting environment: Development
+ventixe.verify-1  | info: Microsoft.Hosting.Lifetime[0]
+ventixe.verify-1  |       Content root path: /app
+ventixe.auth-1    | info: Microsoft.Hosting.Lifetime[14]
+ventixe.auth-1    |       Now listening on: http://[::]:8080
+ventixe.auth-1    | info: Microsoft.Hosting.Lifetime[0]
+ventixe.auth-1    |       Application started. Press Ctrl+C to shut down.
+ventixe.auth-1    | info: Microsoft.Hosting.Lifetime[0]
+ventixe.auth-1    |       Hosting environment: Development
+ventixe.auth-1    | info: Microsoft.Hosting.Lifetime[0]
+ventixe.auth-1    |       Content root path: /app
+ventixe.ai-1      | info: Microsoft.Hosting.Lifetime[14]
+ventixe.ai-1      |       Now listening on: http://[::]:8080
+ventixe.ai-1      | info: Microsoft.Hosting.Lifetime[0]
+ventixe.ai-1      |       Application started. Press Ctrl+C to shut down.
+ventixe.ai-1      | info: Microsoft.Hosting.Lifetime[0]
+ventixe.ai-1      |       Hosting environment: Development
+ventixe.ai-1      | info: Microsoft.Hosting.Lifetime[0]
+ventixe.ai-1      |       Content root path: /app
+ventixe.frontend-1  | 
+ventixe.frontend-1  | > ventixereact@0.0.0 dev
+ventixe.frontend-1  | > vite --host
+ventixe.frontend-1  | 
+ventixe.frontend-1  | 
+ventixe.frontend-1  |   VITE v6.3.5  ready in 464 ms
+ventixe.frontend-1  | 
+ventixe.frontend-1  |   Ô×£  Local:   http://localhost:5173/
+ventixe.frontend-1  |   Ô×£  Network: http://172.18.0.4:5173/
+sql-db-1            | 2026-03-15 17:21:22.83 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_replicatedmaster.mdf' to '/var/opt/mssql/data/model_replicatedmaster.mdf'.
+sql-db-1            | 
+2026-03-15 17:21:22.86 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_replicatedmaster.ldf' to '/var/opt/mssql/data/model_replicatedmaster.ldf'.
+sql-db-1            | 
+2026-03-15 17:21:22.87 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_msdbdata.mdf' to '/var/opt/mssql/data/model_msdbdata.mdf'.
+sql-db-1            | 
+2026-03-15 17:21:22.92 Server      Setup step is FORCE copying system data file 'C:\templatedata\model_msdblog.ldf' to '/var/opt/mssql/data/model_msdblog.ldf'.
+sql-db-1            | 
+2026-03-15 17:21:22.96 Server      Microsoft SQL Server 2022 (RTM-CU22) (KB5068450) - 16.0.4225.2 (X64) 
+sql-db-1            | 
+	Oct 22 2025 23:44:36 
+sql-db-1            | 
+	Copyright (C) 2022 Microsoft Corporation
+sql-db-1            | 
+	Developer Edition (64-bit) on Linux (Ubuntu 22.04.5 LTS) <X64>
+sql-db-1            | 
+2026-03-15 17:21:22.96 Server      UTC adjustment: 0:00
+sql-db-1            | 
+2026-03-15 17:21:22.96 Server      (c) Microsoft Corporation.
+sql-db-1            | 
+2026-03-15 17:21:22.96 Server      All rights reserved.
+sql-db-1            | 
+2026-03-15 17:21:22.96 Server      Server process ID is 536.
+sql-db-1            | 
+2026-03-15 17:21:22.96 Server      Logging SQL Server messages in file '/var/opt/mssql/log/errorlog'.
+sql-db-1            | 
+2026-03-15 17:21:22.97 Server      Registry startup parameters: 
+sql-db-1            | 
+	 -d /var/opt/mssql/data/master.mdf
+sql-db-1            | 
+	 -l /var/opt/mssql/data/mastlog.ldf
+sql-db-1            | 
+	 -e /var/opt/mssql/log/errorlog
+sql-db-1            | 
+2026-03-15 17:21:22.97 Server      SQL Server detected 1 sockets with 8 cores per socket and 16 logical processors per socket, 16 total logical processors; using 16 logical processors based on SQL Server licensing. This is an informational message; no user action is required.
+sql-db-1            | 
+2026-03-15 17:21:22.97 Server      SQL Server is starting at normal priority base (=7). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:22.98 Server      Detected 6072 MB of RAM, 5691 MB of available memory, 5691 MB of available page file. This is an informational message; no user action is required.
+sql-db-1            | 
+2026-03-15 17:21:22.98 Server      Using conventional memory in the memory manager.
+sql-db-1            | 
+2026-03-15 17:21:22.98 Server      Detected pause instruction latency: 34 cycles.
+sql-db-1            | 
+2026-03-15 17:21:22.98 Server      SQL Server detected the following NUMA node configuration (NUMA Node number 0, Processor Group number 0, CPU Mask 0x000000000000ffff).
+sql-db-1            | 
+2026-03-15 17:21:22.98 Server      Page exclusion bitmap is enabled.
+sql-db-1            | 
+2026-03-15 17:21:23.06 Server      Buffer pool extension is not supported on Linux platform.
+sql-db-1            | 
+2026-03-15 17:21:23.07 Server      Buffer Pool: Allocating 8388608 bytes for 903122 hashPages.
+sql-db-1            | 
+2026-03-15 17:21:23.18 Server      Buffer pool extension is already disabled. No action is necessary.
+sql-db-1            | 
+2026-03-15 17:21:23.56 Server      Installing Client TLS certificates to the store.
+sql-db-1            | 
+2026-03-15 17:21:23.57 Server      CPU vectorization level(s) detected:  SSE SSE2 SSE3 SSSE3 SSE41 SSE42 AVX AVX2 POPCNT BMI1 BMI2 AVX512 (F CD BW DQ VL IFMA VBMI VBMI2 VNNI BITALG VPOQCNTDQ BF16)
+sql-db-1            | 
+2026-03-15 17:21:23.65 Server      Successfully initialized the TLS configuration. Allowed TLS protocol versions are ['1.0 1.1 1.2']. Allowed TLS ciphers are ['ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-AES128-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:!DHE-RSA-AES256-GCM-SHA384:!DHE-RSA-AES128-GCM-SHA256:!DHE-RSA-AES256-SHA:!DHE-RSA-AES128-SHA'].
+sql-db-1            | 
+2026-03-15 17:21:23.68 Server      Query Store settings initialized with enabled = 1, 
+sql-db-1            | 
+2026-03-15 17:21:23.69 Server      The maximum number of dedicated administrator connections for this instance is '1'
+sql-db-1            | 
+2026-03-15 17:21:23.70 Server      Node configuration: node 0: CPU mask: 0x000000000000ffff:0 Active CPU mask: 0x000000000000ffff:0. This message provides a description of the NUMA configuration for this computer. This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:23.74 Server      Using dynamic lock allocation.  Initial allocation of 2500 Lock blocks and 5000 Lock Owner blocks per node.  This is an informational message only.  No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:23.74 Server      Lock partitioning is enabled.  This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:23.79 Server      In-Memory OLTP initialized on lowend machine.
+sql-db-1            | 
+2026-03-15 17:21:23.84 Server      [INFO] Created Extended Events session 'hkenginexesession'
+sql-db-1            | 
+2026-03-15 17:21:23.84 Server      CLR version v4.0.30319 loaded.
+sql-db-1            | 
+2026-03-15 17:21:23.84 Server      Database Instant File Initialization: enabled. For security and performance considerations see the topic 'Database Instant File Initialization' in SQL Server Books Online. This is an informational message only. No user action is required.
+sql-db-1            | 
+ForceFlush is enabled for this instance. 
+sql-db-1            | 
+2026-03-15 17:21:23.87 Server      Total Log Writer threads: 2. This is an informational message; no user action is required.
+sql-db-1            | 
+2026-03-15 17:21:23.87 Server      clwb is selected for pmem flush operation.
+sql-db-1            | 
+2026-03-15 17:21:23.88 Server      Software Usage Metrics is disabled.
+sql-db-1            | 
+2026-03-15 17:21:23.89 spid44s     [1]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:23.90 spid44s     Starting up database 'master'.
+sql-db-1            | 
+ForceFlush feature is enabled for log durability.
+sql-db-1            | 
+2026-03-15 17:21:23.99 spid44s     59 transactions rolled forward in database 'master' (1:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:24.00 spid44s     0 transactions rolled back in database 'master' (1:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:24.00 spid44s     Recovery is writing a checkpoint in database 'master' (1). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:24.07 spid44s     [32762]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:24.07 spid46s     [32767]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:24.07 spid44s     Starting up database 'model_replicatedmaster'.
+sql-db-1            | 
+2026-03-15 17:21:24.07 spid46s     Starting up database 'mssqlsystemresource'.
+sql-db-1            | 
+2026-03-15 17:21:24.08 spid46s     The resource database build version is 16.00.4225. This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:24.10 spid46s     [3]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:24.11 spid46s     Starting up database 'model'.
+sql-db-1            | 
+2026-03-15 17:21:24.18 spid44s     Converting database 'model_replicatedmaster' from version 927 to the current version 957.
+sql-db-1            | 
+2026-03-15 17:21:24.18 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 927 to version 928.
+sql-db-1            | 
+2026-03-15 17:21:24.20 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 928 to version 929.
+sql-db-1            | 
+2026-03-15 17:21:24.20 Server      Common language runtime (CLR) functionality initialized.
+sql-db-1            | 
+2026-03-15 17:21:24.24 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 929 to version 930.
+sql-db-1            | 
+2026-03-15 17:21:24.25 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 930 to version 931.
+sql-db-1            | 
+2026-03-15 17:21:24.25 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 931 to version 932.
+sql-db-1            | 
+2026-03-15 17:21:24.26 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 932 to version 933.
+sql-db-1            | 
+2026-03-15 17:21:24.27 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 933 to version 934.
+sql-db-1            | 
+2026-03-15 17:21:24.27 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 934 to version 935.
+sql-db-1            | 
+2026-03-15 17:21:24.28 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 935 to version 936.
+sql-db-1            | 
+2026-03-15 17:21:24.28 Server      External governance manager initialized
+sql-db-1            | 
+2026-03-15 17:21:24.29 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 936 to version 937.
+sql-db-1            | 
+2026-03-15 17:21:24.29 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 937 to version 938.
+sql-db-1            | 
+2026-03-15 17:21:24.30 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 938 to version 939.
+sql-db-1            | 
+2026-03-15 17:21:24.30 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 939 to version 940.
+sql-db-1            | 
+2026-03-15 17:21:24.31 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 940 to version 941.
+sql-db-1            | 
+2026-03-15 17:21:24.32 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 941 to version 942.
+sql-db-1            | 
+2026-03-15 17:21:24.32 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 942 to version 943.
+sql-db-1            | 
+2026-03-15 17:21:24.35 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 943 to version 944.
+sql-db-1            | 
+2026-03-15 17:21:24.36 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 944 to version 945.
+sql-db-1            | 
+2026-03-15 17:21:24.36 spid53s     A self-generated certificate was successfully loaded for encryption.
+sql-db-1            | 
+2026-03-15 17:21:24.37 spid53s     Server is listening on [ 'any' <ipv6> 1433] accept sockets 1.
+sql-db-1            | 
+2026-03-15 17:21:24.37 spid53s     Server is listening on [ 'any' <ipv4> 1433] accept sockets 1.
+sql-db-1            | 
+2026-03-15 17:21:24.38 Server      Server is listening on [ ::1 <ipv6> 1434] accept sockets 1.
+sql-db-1            | 
+2026-03-15 17:21:24.38 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 945 to version 946.
+sql-db-1            | 
+2026-03-15 17:21:24.38 Server      Server is listening on [ 127.0.0.1 <ipv4> 1434] accept sockets 1.
+sql-db-1            | 
+2026-03-15 17:21:24.38 Server      Dedicated admin connection support was established for listening locally on port 1434.
+sql-db-1            | 
+2026-03-15 17:21:24.39 spid53s     Server is listening on [ ::1 <ipv6> 1431] accept sockets 1.
+sql-db-1            | 
+2026-03-15 17:21:24.39 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 946 to version 947.
+sql-db-1            | 
+2026-03-15 17:21:24.39 spid53s     Server is listening on [ 127.0.0.1 <ipv4> 1431] accept sockets 1.
+sql-db-1            | 
+2026-03-15 17:21:24.39 spid53s     SQL Server is now ready for client connections. This is an informational message; no user action is required.
+sql-db-1            | 
+2026-03-15 17:21:24.39 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 947 to version 948.
+sql-db-1            | 
+2026-03-15 17:21:24.40 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 948 to version 949.
+sql-db-1            | 
+2026-03-15 17:21:24.41 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 949 to version 950.
+sql-db-1            | 
+2026-03-15 17:21:24.42 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 950 to version 951.
+sql-db-1            | 
+2026-03-15 17:21:24.43 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 951 to version 952.
+sql-db-1            | 
+2026-03-15 17:21:24.44 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 952 to version 953.
+sql-db-1            | 
+2026-03-15 17:21:24.46 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 953 to version 954.
+sql-db-1            | 
+2026-03-15 17:21:24.46 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 954 to version 955.
+sql-db-1            | 
+2026-03-15 17:21:24.47 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 955 to version 956.
+sql-db-1            | 
+2026-03-15 17:21:24.48 spid44s     Database 'model_replicatedmaster' running the upgrade step from version 956 to version 957.
+sql-db-1            | 
+2026-03-15 17:21:24.52 spid44s     [32761]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:24.52 spid44s     Starting up database 'model_msdb'.
+sql-db-1            | 
+2026-03-15 17:21:24.65 spid44s     Converting database 'model_msdb' from version 927 to the current version 957.
+sql-db-1            | 
+2026-03-15 17:21:24.65 spid44s     Database 'model_msdb' running the upgrade step from version 927 to version 928.
+sql-db-1            | 
+2026-03-15 17:21:24.67 spid44s     Database 'model_msdb' running the upgrade step from version 928 to version 929.
+sql-db-1            | 
+2026-03-15 17:21:24.70 spid44s     Database 'model_msdb' running the upgrade step from version 929 to version 930.
+sql-db-1            | 
+2026-03-15 17:21:24.71 spid44s     Database 'model_msdb' running the upgrade step from version 930 to version 931.
+sql-db-1            | 
+2026-03-15 17:21:24.72 spid44s     Database 'model_msdb' running the upgrade step from version 931 to version 932.
+sql-db-1            | 
+2026-03-15 17:21:24.73 spid44s     Database 'model_msdb' running the upgrade step from version 932 to version 933.
+sql-db-1            | 
+2026-03-15 17:21:24.74 spid44s     Database 'model_msdb' running the upgrade step from version 933 to version 934.
+sql-db-1            | 
+2026-03-15 17:21:24.74 spid44s     Database 'model_msdb' running the upgrade step from version 934 to version 935.
+sql-db-1            | 
+2026-03-15 17:21:24.75 spid44s     Database 'model_msdb' running the upgrade step from version 935 to version 936.
+sql-db-1            | 
+2026-03-15 17:21:24.76 spid44s     Database 'model_msdb' running the upgrade step from version 936 to version 937.
+sql-db-1            | 
+2026-03-15 17:21:24.76 spid44s     Database 'model_msdb' running the upgrade step from version 937 to version 938.
+sql-db-1            | 
+2026-03-15 17:21:24.77 spid44s     Database 'model_msdb' running the upgrade step from version 938 to version 939.
+sql-db-1            | 
+2026-03-15 17:21:24.77 spid44s     Database 'model_msdb' running the upgrade step from version 939 to version 940.
+sql-db-1            | 
+2026-03-15 17:21:24.78 spid44s     Database 'model_msdb' running the upgrade step from version 940 to version 941.
+sql-db-1            | 
+2026-03-15 17:21:24.79 spid44s     Database 'model_msdb' running the upgrade step from version 941 to version 942.
+sql-db-1            | 
+2026-03-15 17:21:24.79 spid44s     Database 'model_msdb' running the upgrade step from version 942 to version 943.
+sql-db-1            | 
+2026-03-15 17:21:24.82 spid44s     Database 'model_msdb' running the upgrade step from version 943 to version 944.
+sql-db-1            | 
+2026-03-15 17:21:24.82 spid44s     Database 'model_msdb' running the upgrade step from version 944 to version 945.
+sql-db-1            | 
+2026-03-15 17:21:24.84 spid44s     Database 'model_msdb' running the upgrade step from version 945 to version 946.
+sql-db-1            | 
+2026-03-15 17:21:24.85 spid44s     Database 'model_msdb' running the upgrade step from version 946 to version 947.
+sql-db-1            | 
+2026-03-15 17:21:24.85 spid44s     Database 'model_msdb' running the upgrade step from version 947 to version 948.
+sql-db-1            | 
+2026-03-15 17:21:24.86 spid44s     Database 'model_msdb' running the upgrade step from version 948 to version 949.
+sql-db-1            | 
+2026-03-15 17:21:24.87 spid44s     Database 'model_msdb' running the upgrade step from version 949 to version 950.
+sql-db-1            | 
+2026-03-15 17:21:24.87 spid44s     Database 'model_msdb' running the upgrade step from version 950 to version 951.
+sql-db-1            | 
+2026-03-15 17:21:24.89 spid44s     Database 'model_msdb' running the upgrade step from version 951 to version 952.
+sql-db-1            | 
+2026-03-15 17:21:24.89 spid44s     Database 'model_msdb' running the upgrade step from version 952 to version 953.
+sql-db-1            | 
+2026-03-15 17:21:24.90 spid44s     Database 'model_msdb' running the upgrade step from version 953 to version 954.
+sql-db-1            | 
+2026-03-15 17:21:24.91 spid44s     Database 'model_msdb' running the upgrade step from version 954 to version 955.
+sql-db-1            | 
+2026-03-15 17:21:24.92 spid44s     Database 'model_msdb' running the upgrade step from version 955 to version 956.
+sql-db-1            | 
+2026-03-15 17:21:24.95 spid44s     Database 'model_msdb' running the upgrade step from version 956 to version 957.
+sql-db-1            | 
+2026-03-15 17:21:25.00 spid44s     Resource governor reconfiguration succeeded.
+sql-db-1            | 
+2026-03-15 17:21:25.00 spid59s     Attribute synchronization initialized
+sql-db-1            | 
+2026-03-15 17:21:25.00 spid44s     SQL Server Audit is starting the audits. This is an informational message. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.00 spid59s     Attribute synchronization manager initialized
+sql-db-1            | 
+2026-03-15 17:21:25.00 spid44s     SQL Server Audit has started the audits. This is an informational message. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.07 spid44s     SQL Trace ID 1 was started by login "sa".
+sql-db-1            | 
+2026-03-15 17:21:25.07 spid44s     Server name is 'de7e57690692'. This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.11 spid46s     Clearing tempdb database.
+sql-db-1            | 
+2026-03-15 17:21:25.11 spid60s     Always On: The availability replica manager is starting. This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.11 spid60s     Always On: The availability replica manager is waiting for the instance of SQL Server to allow client connections. This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.11 spid65s     [4]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:25.11 spid69s     [7]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:25.12 spid68s     [6]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:25.12 spid65s     Starting up database 'msdb'.
+sql-db-1            | 
+2026-03-15 17:21:25.12 spid66s     [8]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:25.12 spid69s     Starting up database 'EventDb'.
+sql-db-1            | 
+2026-03-15 17:21:25.12 spid68s     Starting up database 'AccountDb'.
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid67s     [5]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid69s     RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [7]
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid68s     RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [6]
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid66s     Starting up database 'BookingDb'.
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid67s     Starting up database 'UserDb'.
+sql-db-1            | 
+2026-03-15 17:21:25.14 spid67s     RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [5]
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid68s     RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 6.
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid66s     RemoveStaleDbEntries: Cleanup of stale DB entries called for database ID: [8]
+sql-db-1            | 
+2026-03-15 17:21:25.13 spid69s     RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 7.
+sql-db-1            | 
+2026-03-15 17:21:25.14 spid67s     RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 5.
+sql-db-1            | 
+2026-03-15 17:21:25.14 spid66s     RemoveStaleDbEntries: Cleanup of stale DB entries skipped because master db is not memory optimized. DbId: 8.
+sql-db-1            | 
+2026-03-15 17:21:25.23 spid69s     Parallel redo is started for database 'EventDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.25 spid67s     Parallel redo is started for database 'UserDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.25 spid66s     Parallel redo is started for database 'BookingDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.25 spid68s     Parallel redo is started for database 'AccountDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.28 spid69s     90 transactions rolled forward in database 'EventDb' (7:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.29 spid68s     79 transactions rolled forward in database 'AccountDb' (6:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.29 spid67s     11 transactions rolled forward in database 'UserDb' (5:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.30 spid66s     75 transactions rolled forward in database 'BookingDb' (8:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.37 spid44s     Recovery is writing a checkpoint in database 'msdb' (4). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.37 spid46s     [2]. Feature Status: PVS: 0. CTR: 0. ConcurrentPFSUpdate: 1. ConcurrentGAMUpdate: 1. ConcurrentSGAMUpdate: 1, CleanupUnderUserTransaction: 0. TranLevelPVS: 0
+sql-db-1            | 
+2026-03-15 17:21:25.38 spid69s     0 transactions rolled back in database 'EventDb' (7:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.38 spid67s     0 transactions rolled back in database 'AccountDb' (6:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.38 spid46s     Starting up database 'tempdb'.
+sql-db-1            | 
+2026-03-15 17:21:25.38 spid68s     0 transactions rolled back in database 'UserDb' (5:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.38 spid66s     0 transactions rolled back in database 'BookingDb' (8:0). This is an informational message only. No user action is required.
+sql-db-1            | 
+2026-03-15 17:21:25.38 spid69s     Parallel redo is shutdown for database 'EventDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.39 spid67s     Parallel redo is shutdown for database 'AccountDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.39 spid68s     Parallel redo is shutdown for database 'UserDb' with worker pool size [8].
+sql-db-1            | 
+2026-03-15 17:21:25.39 spid66s     Parallel redo is shutdown for database 'BookingDb' with worker pool size [8].
+ Container ventixe-all-sql-db-1 Healthy 
+ Container ventixe-all-ventixe.event-1 Starting 
+ Container ventixe-all-sql-db-1 Healthy 
+ Container ventixe-all-ventixe.account-1 Starting 
+ Container ventixe-all-sql-db-1 Healthy 
+ Container ventixe-all-ventixe.booking-1 Starting 
+ Container ventixe-all-sql-db-1 Healthy 
+ Container ventixe-all-ventixe.user-1 Starting 
+ Container ventixe-all-ventixe.event-1 Started 
+ Container ventixe-all-ventixe.account-1 Started 
+ Container ventixe-all-ventixe.booking-1 Started 
+sql-db-1            | 
+2026-03-15 17:21:26.13 spid46s     The tempdb database has 8 data file(s).
+ Container ventixe-all-ventixe.user-1 Started 
+sql-db-1            | 
+2026-03-15 17:21:26.15 spid54s     The Service Broker endpoint is in disabled or stopped state.
+sql-db-1            | 
+2026-03-15 17:21:26.15 spid54s     The Database Mirroring endpoint is in disabled or stopped state.
+sql-db-1            | 
+2026-03-15 17:21:26.16 spid54s     Service Broker manager has started.
+sql-db-1            | 
+2026-03-15 17:21:26.16 spid44s     Recovery is complete. This is an informational message only. No user action is required.
+ventixe.event-1     | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.event-1     |       Executed DbCommand (15ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.event-1     |       SELECT 1
+ventixe.event-1     | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.event-1     |       Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.event-1     |       SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ventixe.account-1   | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.account-1   |       Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.account-1   |       SELECT 1
+ventixe.event-1     | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.event-1     |       Executed DbCommand (12ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.event-1     |       SELECT [MigrationId], [ProductVersion]
+ventixe.event-1     |       FROM [__EFMigrationsHistory]
+ventixe.event-1     |       ORDER BY [MigrationId];
+ventixe.account-1   | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.account-1   |       Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.account-1   |       SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ventixe.event-1     | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.event-1     |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS '8081'. Binding to values defined by URLS instead 'https://+:8081;http://+:8080'.
+ventixe.account-1   | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.account-1   |       Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.account-1   |       SELECT [MigrationId], [ProductVersion]
+ventixe.account-1   |       FROM [__EFMigrationsHistory]
+ventixe.account-1   |       ORDER BY [MigrationId];
+ventixe.booking-1   | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.booking-1   |       Executed DbCommand (20ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.booking-1   |       SELECT 1
+ventixe.account-1   | warn: Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository[50]
+ventixe.account-1   |       Using an in-memory repository. Keys will not be persisted to storage.
+ventixe.account-1   | warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[59]
+ventixe.account-1   |       Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+ventixe.booking-1   | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.booking-1   |       Executed DbCommand (11ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.booking-1   |       SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ventixe.account-1   | info: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[58]
+ventixe.account-1   |       Creating key {d8a896ec-f354-4dab-b622-85bc55e1c7ee} with creation date 2026-03-15 17:21:27Z, activation date 2026-03-15 17:21:27Z, and expiration date 2026-06-13 17:21:27Z.
+ventixe.account-1   | warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+ventixe.account-1   |       No XML encryptor configured. Key {d8a896ec-f354-4dab-b622-85bc55e1c7ee} may be persisted to storage in unencrypted form.
+ventixe.account-1   | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.account-1   |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS '8081'. Binding to values defined by URLS instead 'https://+:8081;http://+:8080'.
+ventixe.booking-1   | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.booking-1   |       Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.booking-1   |       SELECT [MigrationId], [ProductVersion]
+ventixe.booking-1   |       FROM [__EFMigrationsHistory]
+ventixe.booking-1   |       ORDER BY [MigrationId];
+ventixe.booking-1   | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.booking-1   |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS '8081'. Binding to values defined by URLS instead 'https://+:8081;http://+:8080'.
+ventixe.user-1      | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.user-1      |       Executed DbCommand (14ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.user-1      |       SELECT 1
+ventixe.event-1     | info: Microsoft.Hosting.Lifetime[14]
+ventixe.event-1     |       Now listening on: https://[::]:8081
+ventixe.event-1     | info: Microsoft.Hosting.Lifetime[14]
+ventixe.event-1     |       Now listening on: http://[::]:8080
+ventixe.event-1     | info: Microsoft.Hosting.Lifetime[0]
+ventixe.event-1     |       Application started. Press Ctrl+C to shut down.
+ventixe.event-1     | info: Microsoft.Hosting.Lifetime[0]
+ventixe.event-1     |       Hosting environment: Development
+ventixe.event-1     | info: Microsoft.Hosting.Lifetime[0]
+ventixe.event-1     |       Content root path: /app
+ventixe.user-1      | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.user-1      |       Executed DbCommand (9ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.user-1      |       SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+ventixe.user-1      | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+ventixe.user-1      |       Executed DbCommand (7ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+ventixe.user-1      |       SELECT [MigrationId], [ProductVersion]
+ventixe.user-1      |       FROM [__EFMigrationsHistory]
+ventixe.user-1      |       ORDER BY [MigrationId];
+ventixe.user-1      | warn: Microsoft.AspNetCore.Hosting.Diagnostics[15]
+ventixe.user-1      |       Overriding HTTP_PORTS '8080' and HTTPS_PORTS '8081'. Binding to values defined by URLS instead 'https://+:8081;http://+:8080'.
+ventixe.account-1   | info: Microsoft.Hosting.Lifetime[14]
+ventixe.account-1   |       Now listening on: https://[::]:8081
+ventixe.account-1   | info: Microsoft.Hosting.Lifetime[14]
+ventixe.account-1   |       Now listening on: http://[::]:8080
+ventixe.account-1   | info: Microsoft.Hosting.Lifetime[0]
+ventixe.account-1   |       Application started. Press Ctrl+C to shut down.
+ventixe.account-1   | info: Microsoft.Hosting.Lifetime[0]
+ventixe.account-1   |       Hosting environment: Development
+ventixe.account-1   | info: Microsoft.Hosting.Lifetime[0]
+ventixe.account-1   |       Content root path: /app
+ventixe.booking-1   | info: Microsoft.Hosting.Lifetime[14]
+ventixe.booking-1   |       Now listening on: https://[::]:8081
+ventixe.booking-1   | info: Microsoft.Hosting.Lifetime[14]
+ventixe.booking-1   |       Now listening on: http://[::]:8080
+ventixe.booking-1   | info: Microsoft.Hosting.Lifetime[0]
+ventixe.booking-1   |       Application started. Press Ctrl+C to shut down.
+ventixe.booking-1   | info: Microsoft.Hosting.Lifetime[0]
+ventixe.booking-1   |       Hosting environment: Development
+ventixe.booking-1   | info: Microsoft.Hosting.Lifetime[0]
+ventixe.booking-1   |       Content root path: /app
+ventixe.user-1      | info: Microsoft.Hosting.Lifetime[14]
+ventixe.user-1      |       Now listening on: https://[::]:8081
+ventixe.user-1      | info: Microsoft.Hosting.Lifetime[14]
+ventixe.user-1      |       Now listening on: http://[::]:8080
+ventixe.user-1      | info: Microsoft.Hosting.Lifetime[0]
+ventixe.user-1      |       Application started. Press Ctrl+C to shut down.
+ventixe.user-1      | info: Microsoft.Hosting.Lifetime[0]
+ventixe.user-1      |       Hosting environment: Development
+ventixe.user-1      | info: Microsoft.Hosting.Lifetime[0]
+ventixe.user-1      |       Content root path: /app
+ Compose Stopping Gracefully Stopping... press Ctrl+C again to force
+ Container ventixe-all-ventixe.frontend-1 Stopping 
+ Container ventixe-all-ventixe.verify-1 Stopping 
+ Container ventixe-all-ventixe.booking-1 Stopping 
+ Container ventixe-all-ventixe.ai-1 Stopping 
+ Container ventixe-all-ventixe.event-1 Stopping 
+ Container ventixe-all-ventixe.user-1 Stopping 
+ Container ventixe-all-ventixe.account-1 Stopping 
+ Container ventixe-all-ventixe.auth-1 Stopping 
+ Container ventixe-all-ventixe.verify-1 Stopped 
+ Container ventixe-all-ventixe.event-1 Stopped 
+ Container ventixe-all-ventixe.auth-1 Stopped 
+ Container ventixe-all-ventixe.account-1 Stopped 
+ Container ventixe-all-ventixe.frontend-1 Stopped 
+ Container ventixe-all-ventixe.booking-1 Stopped 
+ Container ventixe-all-ventixe.user-1 Stopped 
+ Container ventixe-all-ventixe.ai-1 Stopped 
+ Container ventixe-all-sql-db-1 Stopping 
+ Container ventixe-all-qdrant-1 Stopping 
+ Container ventixe-all-qdrant-1 Stopped 
+ Container ventixe-all-sql-db-1 Stopped 
+
