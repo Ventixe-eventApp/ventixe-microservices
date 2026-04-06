@@ -158,10 +158,13 @@ Ventixe-All/
 │   ├── event-service/                    # Event listings & data
 │   ├── user-service/                     # User profiles & preferences
 │   ├── verification-provider-service/    # Email/SMS verification
-│   └── Ventixe.AI.Service/               # AI recommendations & search
+│   └── Ventixe.AI.Service/               # AI Chat Agent for event discovery
 │
 ├── Frontend
 │   └── ventixereact/                     # React + Vite web application
+│
+├── Database
+│   └── init.sql                          # PostgreSQL initialization script
 │
 ├── Infrastructure & Configuration
 │   ├── docker-compose.yml                # Full stack orchestration
@@ -341,13 +344,22 @@ Handles email/SMS verification, OTP generation, and validation.
 - `GET /api/verification/status/{id}` - Check verification status
 
 ### AI Service (Port 5011)
-Provides AI-powered features: semantic search, recommendations, and embeddings.
+Provides AI-powered event discovery through conversational chat.
 
 **Key Endpoints:**
-- `POST /api/ai/index` - Index events and generate embeddings
-- `POST /api/ai/search` - Semantic search for events
-- `GET /api/ai/recommendations/{userId}` - Get personalized recommendations
-- `POST /api/ai/embeddings` - Generate text embeddings
+- `POST /api/chat/start` - Start a new chat conversation
+- `POST /api/chat/send` - Send a message and get AI response
+- `POST /api/chat/{conversationId}/end` - End a conversation
+- `GET /api/chat/{conversationId}/history` - Get conversation history
+- `GET /api/chat/health` - Health check
+
+**Chat Agent Capabilities:**
+- Search events by music genre/artist
+- Search events by city/location
+- Search events by date range
+- Combined multi-criteria searches
+- Get detailed event information
+- Multi-turn conversational flow
 
 ---
 
@@ -385,52 +397,193 @@ curl -H "Authorization: Bearer {JWT_TOKEN}" \
 
 ---
 
+## 🤖 AI Chat API
+
+### Overview
+
+The AI Chat API (`/api/chat`) provides a conversational interface for event discovery powered by Microsoft.Extensions.AI with function calling capabilities.
+
+### Chat Workflow
+
+```
+1. Start Conversation → Get Conversation ID
+          ↓
+2. Send Message → AI Agent receives request
+          ↓
+3. Agent understands intent & calls tools
+   - SearchEventsByMusic
+   - SearchEventsByCity
+   - SearchEventsByDate
+   - SearchEventsCombined
+   - GetEventDetails
+          ↓
+4. Returns response with suggested events
+          ↓
+5. Save to conversation history (PostgreSQL)
+```
+
+### API Endpoints
+
+#### 1. Start a Chat Session
+```bash
+POST /api/chat/start
+
+# Optional: Include user ID for personalization
+POST /api/chat/start?userId={userId}
+
+# Response
+{
+  "conversationId": "550e8400-e29b-41d4-a716-446655440000",
+  "message": "Hi! Welcome to Ventixe!...",
+  "startedAt": "2026-04-06T10:00:00Z"
+}
+```
+
+#### 2. Send a Message
+```bash
+POST /api/chat/send
+Content-Type: application/json
+
+{
+  "message": "Show me jazz concerts in New York next month",
+  "conversationId": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "optional-user-id"
+}
+
+# Response
+{
+  "id": "msg-123",
+  "conversationId": "550e8400-e29b-41d4-a716-446655440000",
+  "message": "I found 3 jazz concerts in New York for May!",
+  "suggestedEvents": [
+    {
+      "id": "event-1",
+      "eventName": "NYC Jazz Festival",
+      "artistName": "Miles Davis Tribute",
+      "location": "New York, NY",
+      "startDate": "2026-05-15T20:00:00Z",
+      "price": 50.00,
+      "availableTickets": 95
+    }
+  ],
+  "searchFilters": {
+    "musicGenre": "jazz",
+    "city": "New York",
+    "fromDate": "2026-05-01",
+    "toDate": "2026-05-31"
+  },
+  "timestamp": "2026-04-06T10:00:30Z"
+}
+```
+
+#### 3. End a Conversation
+```bash
+POST /api/chat/{conversationId}/end
+
+# Response
+{
+  "message": "Conversation ended successfully"
+}
+```
+
+#### 4. Get Conversation History
+```bash
+GET /api/chat/{conversationId}/history
+
+# Response
+{
+  "conversationId": "550e8400-e29b-41d4-a716-446655440000",
+  "messageCount": 5,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Show me jazz concerts",
+      "timestamp": "2026-04-06T10:00:00Z"
+    },
+    {
+      "role": "assistant",
+      "content": "I found 3 jazz concerts...",
+      "timestamp": "2026-04-06T10:00:30Z"
+    }
+  ]
+}
+```
+
+### Example Chat Flow
+
+**User:** "I want to find rock music events in Los Angeles for June"
+
+**Agent Action:**
+- Detects: music genre = "rock", city = "Los Angeles", date = June
+- Calls: `SearchEventsCombined(city="Los Angeles", musicGenre="rock", fromDate="2026-06-01", toDate="2026-06-30")`
+- Finds: 5 rock events
+
+**Response:**
+```
+Found 5 rock events in Los Angeles for June! Here's what's coming up:
+
+1. **Rock Festival LA** - The Rolling Stones Experience
+   📍 Los Angeles, CA
+   📅 June 20, 2026 at 6:00 PM
+   🎟️ $75 | 450 tickets available
+
+2. **Summer Rock Night** - Classic Rock Tribute
+   📍 Los Angeles, CA
+   📅 June 15, 2026 at 7:30 PM
+   🎟️ $45 | 280 tickets available
+
+Would you like more details about any of these events?
+```
+
+### Agent Tools
+
+The agent has access to 5 tools for searching events:
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `SearchEventsByMusic` | Find events by genre or artist | `genre` (string) |
+| `SearchEventsByCity` | Find events in a location | `city` (string) |
+| `SearchEventsByDate` | Find events in date range | `fromDate`, `toDate` (ISO format) |
+| `SearchEventsCombined` | Multi-criteria search | `city`, `musicGenre`, `fromDate`, `toDate` (all optional) |
+| `GetEventDetails` | Get full event details | `eventId` (UUID) |
+
+### LLM Configuration
+
+The AI service uses **Microsoft.Extensions.AI** and supports:
+
+**Option 1: OpenAI GPT-4 (Recommended for Production)**
+```env
+OPENAI_API_KEY=sk-...
+```
+
+**Option 2: Local LLM via Ollama (Development)**
+```bash
+# Install Ollama: https://ollama.ai
+ollama pull neural-chat
+ollama serve  # Runs on http://localhost:11434
+```
+
+---
+
 ## ⚙️ Environment Configuration
 
 ### Required Environment Variables (.env)
 
 ```env
-# Database
-SQL_SERVER=sqlserver
-SQL_USER=sa
-SQL_PASSWORD=BytMig123!
-CONNECTION_STRING=Server=sqlserver;User Id=sa;Password=BytMig123!;TrustServerCertificate=True;
+# Database (PostgreSQL)
+POSTGRES_USER=ventixe_user
+POSTGRES_PASSWORD=ventixe_password
 
-# AI/ML Services
-GOOGLE_API_KEY=AIzaSyC3_jZER6xmIef3nyDeeUC-FEReGw4R3jI
+# AI/Chat
+OPENAI_API_KEY=sk-your-openai-key  # Or omit for Ollama
 
 # Security
-CERT_PASSWORD=NewPassword123!
+CERT_PASSWORD=your_cert_password_here
 JWT_SECRET=your_jwt_secret_key_here_min_32_chars_long
-
-# Service URLs
-ACCOUNT_SERVICE_URL=http://account-service:8080
-AUTH_SERVICE_URL=http://auth-service:8080
-BOOKING_SERVICE_URL=http://booking-service:8080
-EVENT_SERVICE_URL=http://event-service:8080
-USER_SERVICE_URL=http://user-service:8080
-VERIFICATION_SERVICE_URL=http://verification-service:8080
-
-# Qdrant
-QDRANT_URL=http://qdrant:6333
 
 # Frontend
 REACT_APP_API_URL=http://localhost:5005
 REACT_APP_AUTH_SERVICE_URL=http://localhost:7001
-```
-
-### Creating .env File
-
-```bash
-# Copy the template
-cp .env.example .env
-
-# Edit with your configuration
-# On Windows
-notepad .env
-
-# On Linux/Mac
-nano .env
 ```
 
 ---
@@ -557,67 +710,108 @@ npm run lint:fix
 
 ### Database Architecture
 
-Single SQL Server instance with 6 separate databases:
+**PostgreSQL** (Free, lightweight, perfect for startups):
+- Single unified database: `ventixe_main`
+- Multiple tables organized logically
+- Automatic TTL cleanup for old conversations (30 days)
 
-| Database | Purpose | Tables |
-|----------|---------|--------|
-| **AccountDb** | User accounts & credentials | Accounts, Users, Roles |
-| **AuthDb** | Authentication & sessions | Tokens, Sessions, RefreshTokens |
-| **BookingDb** | Event reservations | Bookings, Tickets, Payments |
-| **EventDb** | Event data & catalog | Events, Categories, Venues |
-| **UserDb** | User profiles & preferences | Profiles, Preferences, Settings |
-| **VerifyDb** | Verification records | VerificationCodes, Attempts |
+| Category | Tables | Purpose |
+|----------|--------|---------|
+| **Core Data** | events, users, accounts, bookings | Event management & user accounts |
+| **Authentication** | auth_users, refresh_tokens | JWT & session management |
+| **Verification** | verification_codes, verification_attempts | Email/OTP verification |
+| **AI Chat** | conversations, conversation_messages | Chat history & agent interactions |
+
+### Key Tables for AI Chat Agent
+
+- **conversations**: Stores chat sessions (user, timestamps, message count)
+- **conversation_messages**: Individual messages with role (user/assistant/system), content, tool calls, search filters, suggested events
 
 ### Database Initialization
 
-**Using Docker Compose:**
+**Using Docker Compose (Automatic):**
 ```bash
 docker-compose up
-# Databases auto-create from migrations
+# PostgreSQL automatically initializes with database/init.sql
 ```
 
-**Using SQL Server Management Studio (SSMS):**
-```sql
--- Create databases
-CREATE DATABASE AccountDb;
-CREATE DATABASE AuthDb;
-CREATE DATABASE BookingDb;
-CREATE DATABASE EventDb;
-CREATE DATABASE UserDb;
-CREATE DATABASE VerifyDb;
-```
-
-### Running Migrations
-
+**Manual PostgreSQL Connection:**
 ```bash
-# For a specific service
-cd event-service
-dotnet ef database update
+# Connect to running PostgreSQL container
+docker exec -it ventixe-postgres psql -U ventixe_user -d ventixe_main
 
-# View pending migrations
-dotnet ef migrations list
+# View tables
+\dt
 
-# Add a new migration
-dotnet ef migrations add AddEventFeature
+# View chat conversations
+SELECT * FROM conversations;
 
-# Rollback migration
-dotnet ef database update PreviousMigration
+# View conversation messages
+SELECT * FROM conversation_messages ORDER BY created_at DESC;
 ```
+
+### Automatic Cleanup Jobs
+
+PostgreSQL `pg_cron` extension automatically:
+- **2 AM UTC**: Delete conversations older than 30 days
+- **3 AM UTC**: Delete expired verification codes
+- **4 AM UTC**: Delete revoked/expired refresh tokens
 
 ### Connection String Format
 
 ```
-Server=localhost;Database=DatabaseName;User Id=sa;Password=YourPassword;TrustServerCertificate=True;
+Host=localhost;Port=5432;Database=ventixe_main;Username=ventixe_user;Password=ventixe_password
+```
+
+### Entity Framework Core Configuration
+
+**Update Program.cs for PostgreSQL:**
+```csharp
+// Old (SQL Server)
+services.AddDbContext<EventDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// New (PostgreSQL)
+services.AddDbContext<EventDbContext>(options =>
+    options.UseNpgsql(connectionString));
+```
+
+### NuGet Packages
+
+```bash
+# Remove SQL Server provider
+dotnet remove package Microsoft.EntityFrameworkCore.SqlServer
+
+# Add PostgreSQL provider
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
+dotnet add package Npgsql
 ```
 
 ### Backing Up Databases
 
 ```bash
-# Backup via Docker
-docker exec ventixe-sqlserver sqlcmd -S localhost -U sa -P $SQL_PASSWORD -Q "BACKUP DATABASE [EventDb] TO DISK='/var/opt/mssql/backup/EventDb.bak'"
+# Backup PostgreSQL database
+docker exec ventixe-postgres pg_dump -U ventixe_user ventixe_main > ventixe_backup.sql
 
-# Restore
-docker exec ventixe-sqlserver sqlcmd -S localhost -U sa -P $SQL_PASSWORD -Q "RESTORE DATABASE [EventDb] FROM DISK='/var/opt/mssql/backup/EventDb.bak'"
+# Restore from backup
+docker exec -i ventixe-postgres psql -U ventixe_user ventixe_main < ventixe_backup.sql
+
+# Check backup status
+ls -lh ventixe_backup.sql
+```
+
+### Database Migrations
+
+For EF Core migrations:
+```bash
+# Add a new migration
+dotnet ef migrations add AddChatTables -p event-service
+
+# Apply migrations
+dotnet ef database update -p event-service
+
+# View pending migrations
+dotnet ef migrations list
 ```
 
 ---
@@ -628,16 +822,16 @@ docker exec ventixe-sqlserver sqlcmd -S localhost -U sa -P $SQL_PASSWORD -Q "RES
 
 ```yaml
 Services:
-  - sqlserver        : SQL Server 2022 (port 1433)
-  - qdrant           : Vector database (ports 6333/6334)
-  - account-service  : Account microservice (port 5001)
-  - auth-service     : Auth microservice (port 7001)
-  - booking-service  : Booking microservice (port 5003)
-  - event-service    : Event microservice (port 5005)
-  - user-service     : User microservice (port 5007)
+  - postgres        : PostgreSQL 16 (port 5432) - Primary database
+  - qdrant          : Vector database (ports 6333/6334) - AI embeddings
+  - account-service : Account microservice (port 5001)
+  - auth-service    : Auth microservice (port 7001)
+  - booking-service : Booking microservice (port 5003)
+  - event-service   : Event microservice (port 5005)
+  - user-service    : User microservice (port 5007)
   - verification-service: Verification microservice (port 5009)
-  - ai-service       : AI microservice (port 5011)
-  - ventixe-react    : Frontend (port 5173)
+  - ai-service      : AI Chat Agent (port 5011)
+  - ventixe-react   : Frontend (port 5173)
 ```
 
 ### Building Docker Images
