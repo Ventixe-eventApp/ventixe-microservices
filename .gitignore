@@ -19,3 +19,6 @@ qdrant_data/
 # System
 .DS_Store
 Thumbs.db
+
+# Markdown
+copilot/*.md

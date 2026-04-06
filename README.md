@@ -760,7 +760,7 @@ PostgreSQL `pg_cron` extension automatically:
 ### Connection String Format
 
 ```
-Host=localhost;Port=5432;Database=ventixe_main;Username=ventixe_user;Password=ventixe_password
+Host=localhost;Port=5432;Database=ventixe_user;Username=ventixe_user;Password=ventixe_password
 ```
 
 ### Entity Framework Core Configuration

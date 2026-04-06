@@ -6,7 +6,9 @@
 -- ENABLE EXTENSIONS
 -- ============================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- NOTE: pg_cron not available in postgres:16-alpine image
+-- Scheduled cleanup jobs disabled. Manual cleanup can be performed if needed.
+-- CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 
 -- ============================================
@@ -181,34 +183,37 @@ CREATE TABLE IF NOT EXISTS cleanup_logs (
 
 
 -- ============================================
--- TTL / AUTO-DELETE JOBS
+-- TTL / AUTO-DELETE JOBS (DISABLED)
 -- ============================================
+-- NOTE: pg_cron not available in postgres:16-alpine image
+-- Scheduled cleanup jobs have been disabled
+-- For production, use a separate container with pg_cron support
 
 -- Schedule deletion of conversations older than 30 days (runs daily at 2 AM UTC)
-SELECT cron.schedule('cleanup_old_conversations', '0 2 * * *', $$
-    INSERT INTO cleanup_logs (job_name, deleted_rows)
-    SELECT 'cleanup_old_conversations', COUNT(*)
-    FROM conversations 
-    WHERE created_at < NOW() - INTERVAL '30 days'
-    AND ended_at IS NOT NULL;
-    
-    DELETE FROM conversations 
-    WHERE created_at < NOW() - INTERVAL '30 days'
-    AND ended_at IS NOT NULL;
-$$);
+-- SELECT cron.schedule('cleanup_old_conversations', '0 2 * * *', $$
+--     INSERT INTO cleanup_logs (job_name, deleted_rows)
+--     SELECT 'cleanup_old_conversations', COUNT(*)
+--     FROM conversations 
+--     WHERE created_at < NOW() - INTERVAL '30 days'
+--     AND ended_at IS NOT NULL;
+--     
+--     DELETE FROM conversations 
+--     WHERE created_at < NOW() - INTERVAL '30 days'
+--     AND ended_at IS NOT NULL;
+-- $$);
 
 -- Schedule deletion of orphaned verification codes (runs daily at 3 AM UTC)
-SELECT cron.schedule('cleanup_expired_verification_codes', '0 3 * * *', $$
-    DELETE FROM verification_codes 
-    WHERE expires_at < NOW();
-$$);
+-- SELECT cron.schedule('cleanup_expired_verification_codes', '0 3 * * *', $$
+--     DELETE FROM verification_codes 
+--     WHERE expires_at < NOW();
+-- $$);
 
 -- Schedule deletion of revoked refresh tokens (runs daily at 4 AM UTC)
-SELECT cron.schedule('cleanup_expired_refresh_tokens', '0 4 * * *', $$
-    DELETE FROM refresh_tokens 
-    WHERE expires_at < NOW()
-    OR is_revoked = TRUE;
-$$);
+-- SELECT cron.schedule('cleanup_expired_refresh_tokens', '0 4 * * *', $$
+--     DELETE FROM refresh_tokens 
+--     WHERE expires_at < NOW()
+--     OR is_revoked = TRUE;
+-- $$);
 
 
 -- ============================================

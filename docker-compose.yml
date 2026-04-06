@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
+    env_file:
+      - ./ventixereact/.env
 
   ventixe.account:
     image: ${DOCKER_REGISTRY-}ventixeaccount
@@ -37,12 +39,16 @@ services:
       - Qdrant__Host=qdrant
       - Qdrant__Port=6334
       - Google__ApiKey=${GOOGLE_API_KEY}
+      - Ollama__Endpoint=http://ollama:11434
+      - Ollama__Model=neural-chat
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=ventixe_main;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     ports:
       - "5011:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      ollama:
+        condition: service_started
 
   ventixe.auth:
     image: ${DOCKER_REGISTRY-}ventixeauth
@@ -150,13 +156,14 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=ventixe_main
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -169,6 +176,22 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ventixe-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   qdrant_data:
+  ollama_data:
