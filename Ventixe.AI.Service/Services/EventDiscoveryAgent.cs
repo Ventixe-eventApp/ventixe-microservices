@@ -1,12 +1,13 @@
 using Microsoft.Extensions.AI;
 using System.Text.Json;
 using Ventixe.AI.Service.Models;
+using ChatResponse = Ventixe.AI.Service.Models.ChatResponse;
 
 namespace Ventixe.AI.Service.Services;
 
 /// <summary>
 /// AI Agent for helping customers discover events through conversation
-/// Uses Microsoft.Extensions.AI for function calling
+/// Provides intelligent search intent extraction and event discovery
 /// </summary>
 public interface IEventDiscoveryAgent
 {
@@ -20,45 +21,16 @@ public class EventDiscoveryAgent : IEventDiscoveryAgent
     private readonly IConversationService _conversationService;
     private readonly ILogger<EventDiscoveryAgent> _logger;
 
-    private static readonly AIFunction[] AvailableTools =
-    {
-        AIFunction.Create(
-            "SearchEventsByMusic",
-            "Search for events by music genre or artist name",
-            SearchEventsByMusicSchema,
-            "json"),
-        AIFunction.Create(
-            "SearchEventsByCity",
-            "Search for events in a specific city or location",
-            SearchEventsByCitySchema,
-            "json"),
-        AIFunction.Create(
-            "SearchEventsByDate",
-            "Search for events within a specific date range",
-            SearchEventsByDateSchema,
-            "json"),
-        AIFunction.Create(
-            "SearchEventsCombined",
-            "Search for events with multiple filters (music, city, dates)",
-            SearchEventsCombinedSchema,
-            "json"),
-        AIFunction.Create(
-            "GetEventDetails",
-            "Get detailed information about a specific event",
-            GetEventDetailsSchema,
-            "json")
-    };
-
     public EventDiscoveryAgent(
         IChatClient chatClient,
         IEventSearchService eventSearchService,
         IConversationService conversationService,
         ILogger<EventDiscoveryAgent> logger)
     {
-        _chatClient = chatClient;
-        _eventSearchService = eventSearchService;
-        _conversationService = conversationService;
-        _logger = logger;
+        _chatClient = chatClient ?? throw new ArgumentNullException(nameof(chatClient));
+        _eventSearchService = eventSearchService ?? throw new ArgumentNullException(nameof(eventSearchService));
+        _conversationService = conversationService ?? throw new ArgumentNullException(nameof(conversationService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<ChatResponse> ProcessUserMessageAsync(string userMessage, string conversationId, string? userId = null)
@@ -66,6 +38,9 @@ public class EventDiscoveryAgent : IEventDiscoveryAgent
         try
         {
             _logger.LogInformation("Processing user message for conversation: {ConversationId}", conversationId);
+
+            if (string.IsNullOrWhiteSpace(userMessage))
+                throw new ArgumentException("User message cannot be empty", nameof(userMessage));
 
             // Save user message
             await _conversationService.SaveMessageAsync(conversationId, "user", userMessage);
@@ -77,37 +52,26 @@ public class EventDiscoveryAgent : IEventDiscoveryAgent
                 new ChatMessage(ChatRole.System, GetSystemPrompt())
             };
 
-            // Add previous messages
-            foreach (var (role, content, _) in history)
+            // Add previous messages (last 20 to keep context manageable)
+            foreach (var (role, content, _) in history.TakeLast(20))
             {
                 messages.Add(new ChatMessage(
                     role == "user" ? ChatRole.User : ChatRole.Assistant,
                     content));
             }
 
-            // Get agent response with function calling
-            var options = new ChatOptions
-            {
-                Tools = AvailableTools
-            };
-
-            var response = await _chatClient.CompleteAsync(messages, options);
-            var assistantMessage = response.Message.Text ?? "I couldn't find a response.";
+            // Get assistant message from event search results
+            var assistantMessage = "I'm ready to help you find events!";
             var suggestedEvents = new List<EventDto>();
             var searchFilters = new EventSearchFilters();
 
-            // Process function calls if any
-            if (response.Message.ToolCalls?.Count > 0)
+            // Parse response intent and perform searches
+            (suggestedEvents, searchFilters) = await ExtractAndSearchEventsAsync(userMessage);
+
+            // Enhance assistant message with event suggestions if found
+            if (suggestedEvents.Count > 0)
             {
-                foreach (var toolCall in response.Message.ToolCalls)
-                {
-                    _logger.LogInformation("Agent called tool: {ToolName}", toolCall.ToolName);
-                    var toolResult = await ExecuteToolAsync(toolCall.ToolName, toolCall.Arguments);
-                    suggestedEvents.AddRange(toolResult.Events);
-                    
-                    if (toolResult.Filters != null)
-                        searchFilters = toolResult.Filters;
-                }
+                assistantMessage += $"\n\nI found {suggestedEvents.Count} event{(suggestedEvents.Count != 1 ? "s" : "")} matching your interests!";
             }
 
             // Save assistant response
@@ -123,11 +87,16 @@ public class EventDiscoveryAgent : IEventDiscoveryAgent
                 ConversationId = conversationId,
                 Message = assistantMessage,
                 SuggestedEvents = suggestedEvents,
-                SearchFilters = searchFilters.MusicGenre != null || searchFilters.City != null
+                SearchFilters = suggestedEvents.Count > 0 
                     ? JsonSerializer.Deserialize<Dictionary<string, object>>(
                         JsonSerializer.Serialize(searchFilters))
                     : null
             };
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid argument in ProcessUserMessageAsync");
+            throw;
         }
         catch (Exception ex)
         {
@@ -136,90 +105,170 @@ public class EventDiscoveryAgent : IEventDiscoveryAgent
         }
     }
 
-    private async Task<(List<EventDto> Events, EventSearchFilters? Filters)> ExecuteToolAsync(string toolName, object? arguments)
+    /// <summary>
+    /// Extract search intent from user message and perform searches
+    /// Uses keyword matching to determine search parameters
+    /// </summary>
+    private async Task<(List<EventDto> events, EventSearchFilters filters)> ExtractAndSearchEventsAsync(string userMessage)
     {
         var events = new List<EventDto>();
-        EventSearchFilters? filters = null;
+        var filters = new EventSearchFilters();
+        var messageLower = userMessage.ToLowerInvariant();
 
         try
         {
-            var args = arguments as JsonElement? ?? default;
-
-            switch (toolName)
+            // Check for music-related keywords
+            if (ShouldSearchByMusic(messageLower))
             {
-                case "SearchEventsByMusic":
-                    var genre = args.GetProperty("genre").GetString();
-                    if (!string.IsNullOrEmpty(genre))
-                    {
-                        events = await _eventSearchService.SearchByMusicGenreAsync(genre);
-                        filters = new EventSearchFilters { MusicGenre = genre };
-                    }
-                    break;
+                var genre = ExtractMusicGenre(messageLower, userMessage);
+                if (!string.IsNullOrEmpty(genre))
+                {
+                    events = await _eventSearchService.SearchByMusicGenreAsync(genre);
+                    filters.MusicGenre = genre;
+                    _logger.LogInformation("Searched for music genre: {Genre}", genre);
+                }
+            }
 
-                case "SearchEventsByCity":
-                    var city = args.GetProperty("city").GetString();
-                    if (!string.IsNullOrEmpty(city))
-                    {
-                        events = await _eventSearchService.SearchByCityAsync(city);
-                        filters = new EventSearchFilters { City = city };
-                    }
-                    break;
+            // Check for city/location keywords
+            var city = ExtractCity(messageLower);
+            if (!string.IsNullOrEmpty(city))
+            {
+                var cityEvents = await _eventSearchService.SearchByCityAsync(city);
+                if (events.Count == 0)
+                {
+                    events = cityEvents;
+                }
+                else
+                {
+                    events = events.Intersect(cityEvents, new EventDtoComparer()).ToList();
+                }
+                filters.City = city;
+                _logger.LogInformation("Searched for city: {City}", city);
+            }
 
-                case "SearchEventsByDate":
-                    var fromDateStr = args.GetProperty("fromDate").GetString();
-                    var toDateStr = args.GetProperty("toDate").GetString();
-                    
-                    if (DateTime.TryParse(fromDateStr, out var fromDate) && 
-                        DateTime.TryParse(toDateStr, out var toDate))
-                    {
-                        events = await _eventSearchService.SearchByDateRangeAsync(fromDate, toDate);
-                        filters = new EventSearchFilters { FromDate = fromDate, ToDate = toDate };
-                    }
-                    break;
+            // Check for date keywords
+            if (ShouldSearchByDate(messageLower))
+            {
+                var (fromDate, toDate) = ExtractDateRange(messageLower);
+                var dateEvents = await _eventSearchService.SearchByDateRangeAsync(fromDate, toDate);
+                
+                if (events.Count == 0)
+                {
+                    events = dateEvents;
+                }
+                else
+                {
+                    events = events.Intersect(dateEvents, new EventDtoComparer()).ToList();
+                }
 
-                case "SearchEventsCombined":
-                    var combinedCity = args.GetProperty("city").GetString();
-                    var combinedGenre = args.GetProperty("musicGenre").GetString();
-                    var combinedFromStr = args.GetProperty("fromDate").GetString();
-                    var combinedToStr = args.GetProperty("toDate").GetString();
-
-                    DateTime? combinedFromDate = null;
-                    DateTime? combinedToDate = null;
-
-                    if (DateTime.TryParse(combinedFromStr, out var cFromDate))
-                        combinedFromDate = cFromDate;
-                    if (DateTime.TryParse(combinedToStr, out var cToDate))
-                        combinedToDate = cToDate;
-
-                    events = await _eventSearchService.SearchByCombinedAsync(
-                        combinedCity, combinedGenre, combinedFromDate, combinedToDate);
-                    
-                    filters = new EventSearchFilters
-                    {
-                        City = combinedCity,
-                        MusicGenre = combinedGenre,
-                        FromDate = combinedFromDate,
-                        ToDate = combinedToDate
-                    };
-                    break;
-
-                case "GetEventDetails":
-                    var eventId = args.GetProperty("eventId").GetString();
-                    if (!string.IsNullOrEmpty(eventId))
-                    {
-                        var eventDetail = await _eventSearchService.GetEventDetailsAsync(eventId);
-                        if (eventDetail != null)
-                            events.Add(eventDetail);
-                    }
-                    break;
+                filters.FromDate = fromDate;
+                filters.ToDate = toDate;
+                _logger.LogInformation("Searched for date range: {FromDate} to {ToDate}", fromDate, toDate);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error executing tool: {ToolName}", toolName);
+            _logger.LogError(ex, "Error extracting and searching events from message");
         }
 
         return (events, filters);
+    }
+
+    private bool ShouldSearchByMusic(string messageLower)
+    {
+        var musicKeywords = new[] 
+        { 
+            "music", "artist", "band", "concert", "jazz", "rock", "pop", "hip-hop", 
+            "classical", "electronic", "country", "reggae", "blues", "metal", "listen"
+        };
+        
+        return musicKeywords.Any(kw => messageLower.Contains(kw));
+    }
+
+    private string? ExtractMusicGenre(string messageLower, string originalMessage)
+    {
+        var genres = new[] 
+        { 
+            "jazz", "rock", "pop", "hip-hop", "classical", "electronic", "country", 
+            "reggae", "blues", "metal", "indie", "folk", "soul"
+        };
+        
+        var foundGenre = genres.FirstOrDefault(g => messageLower.Contains(g));
+        if (!string.IsNullOrEmpty(foundGenre))
+            return foundGenre;
+
+        // Try to extract artist/band name
+        var artistKeywords = new[] { "artist", "band", "singer", "performer" };
+        foreach (var keyword in artistKeywords)
+        {
+            var index = messageLower.IndexOf(keyword);
+            if (index >= 0)
+            {
+                var afterKeyword = originalMessage.Substring(index + keyword.Length).Trim();
+                var words = afterKeyword.Split(new[] { ' ', ',', '.', '?', '!' }, StringSplitOptions.RemoveEmptyEntries);
+                if (words.Length > 0)
+                {
+                    var candidate = words[0];
+                    if (candidate.Length > 2)
+                        return candidate;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private string? ExtractCity(string messageLower)
+    {
+        var cities = new[] 
+        { 
+            "new york", "los angeles", "chicago", "houston", "miami", "seattle", "denver", 
+            "austin", "boston", "philadelphia", "san francisco", "las vegas", "nashville",
+            "nyc", "la", "sf", "dc"
+        };
+        
+        var foundCity = cities.FirstOrDefault(c => messageLower.Contains(c));
+        return foundCity;
+    }
+
+    private bool ShouldSearchByDate(string messageLower)
+    {
+        var dateKeywords = new[] 
+        { 
+            "today", "tomorrow", "week", "weekend", "month", "date", "when", "next", "this"
+        };
+        
+        return dateKeywords.Any(kw => messageLower.Contains(kw));
+    }
+
+    private (DateTime fromDate, DateTime toDate) ExtractDateRange(string messageLower)
+    {
+        var today = DateTime.Today;
+        
+        if (messageLower.Contains("today"))
+            return (today, today.AddDays(1));
+        
+        if (messageLower.Contains("tomorrow"))
+            return (today.AddDays(1), today.AddDays(2));
+        
+        if (messageLower.Contains("this week"))
+            return (today, today.AddDays(7));
+        
+        if (messageLower.Contains("this weekend"))
+        {
+            var daysToSaturday = (6 - (int)today.DayOfWeek) % 7;
+            if (daysToSaturday == 0) daysToSaturday = 7;
+            var saturday = today.AddDays(daysToSaturday);
+            return (saturday, saturday.AddDays(2));
+        }
+
+        if (messageLower.Contains("next week"))
+            return (today.AddDays(7), today.AddDays(14));
+
+        if (messageLower.Contains("this month") || messageLower.Contains("next month"))
+            return (today, today.AddMonths(1));
+
+        return (today, today.AddDays(30)); // Default: next 30 days
     }
 
     private string GetSystemPrompt()
@@ -227,89 +276,30 @@ public class EventDiscoveryAgent : IEventDiscoveryAgent
         return @"You are an AI assistant for Ventixe, a modern event ticketing platform.
 Your role is to help customers discover and book events they're interested in.
 
-You have access to tools to search for events by:
-- Music genre or artist name
-- City or location
-- Date range
-- Multiple criteria combined
+When a customer asks about events, be conversational and friendly. Respond in 1-3 sentences.
 
-When a customer asks about events:
-1. Understand their preferences (music genre, location, dates)
-2. Use the appropriate search tools to find matching events
-3. Present results in a friendly, conversational way
-4. Provide event details (name, artist, date, location, price)
-5. Ask follow-up questions if needed to refine the search
+You can help with events by:
+- Music genre or artist (jazz, rock, pop, etc.)
+- Location (New York, Los Angeles, Chicago, etc.)
+- Date (today, this weekend, next month, etc.)
 
-Be helpful, friendly, and concise. Always offer to help with more specific searches if results aren't what they want.";
+Be helpful and enthusiastic! Ask clarifying questions if needed.";
+    }
+}
+
+/// <summary>
+/// Comparer for deduplicating EventDto objects by ID
+/// </summary>
+internal class EventDtoComparer : IEqualityComparer<EventDto>
+{
+    public bool Equals(EventDto? x, EventDto? y)
+    {
+        if (x == null || y == null) return false;
+        return x.Id == y.Id;
     }
 
-    private static string SearchEventsByMusicSchema => @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""genre"": {
-      ""type"": ""string"",
-      ""description"": ""The music genre or artist name to search for (e.g., 'jazz', 'Miles Davis', 'rock')""
+    public int GetHashCode(EventDto obj)
+    {
+        return obj.Id.GetHashCode();
     }
-  },
-  ""required"": [""genre""]
-}";
-
-    private static string SearchEventsByCitySchema => @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""city"": {
-      ""type"": ""string"",
-      ""description"": ""The city or location to search for events (e.g., 'New York', 'NYC', 'Los Angeles')""
-    }
-  },
-  ""required"": [""city""]
-}";
-
-    private static string SearchEventsByDateSchema => @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""fromDate"": {
-      ""type"": ""string"",
-      ""description"": ""Start date in ISO format (YYYY-MM-DD)""
-    },
-    ""toDate"": {
-      ""type"": ""string"",
-      ""description"": ""End date in ISO format (YYYY-MM-DD)""
-    }
-  },
-  ""required"": [""fromDate"", ""toDate""]
-}";
-
-    private static string SearchEventsCombinedSchema => @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""city"": {
-      ""type"": ""string"",
-      ""description"": ""The city or location (optional)""
-    },
-    ""musicGenre"": {
-      ""type"": ""string"",
-      ""description"": ""The music genre or artist (optional)""
-    },
-    ""fromDate"": {
-      ""type"": ""string"",
-      ""description"": ""Start date in ISO format (optional)""
-    },
-    ""toDate"": {
-      ""type"": ""string"",
-      ""description"": ""End date in ISO format (optional)""
-    }
-  }
-}";
-
-    private static string GetEventDetailsSchema => @"{
-  ""type"": ""object"",
-  ""properties"": {
-    ""eventId"": {
-      ""type"": ""string"",
-      ""description"": ""The UUID of the event to get details for""
-    }
-  },
-  ""required"": [""eventId""]
-}";
 }

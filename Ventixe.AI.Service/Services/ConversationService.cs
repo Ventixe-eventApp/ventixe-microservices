@@ -1,5 +1,6 @@
 using Dapper;
 using System.Text.Json;
+using Npgsql;
 using Ventixe.AI.Service.Models;
 
 namespace Ventixe.AI.Service.Services;
@@ -18,13 +19,15 @@ public interface IConversationService
 
 public class ConversationService : IConversationService
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly NpgsqlDataSource _dataSource;
     private readonly ILogger<ConversationService> _logger;
+    private const int CommandTimeoutSeconds = 10;
+    private const int MaxHistoryLimit = 100;
 
-    public ConversationService(IDbConnectionFactory dbConnectionFactory, ILogger<ConversationService> logger)
+    public ConversationService(NpgsqlDataSource dataSource, ILogger<ConversationService> logger)
     {
-        _dbConnectionFactory = dbConnectionFactory;
-        _logger = logger;
+        _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -37,22 +40,34 @@ public class ConversationService : IConversationService
             var conversationId = Guid.NewGuid();
             var now = DateTime.UtcNow;
 
+            // Validate userId if provided
+            Guid? parsedUserId = null;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                if (!Guid.TryParse(userId, out var parsed))
+                {
+                    _logger.LogWarning("Invalid userId format: {UserId}", userId);
+                    return "";
+                }
+                parsedUserId = parsed;
+            }
+
             const string sql = @"
                 INSERT INTO conversations (id, user_id, title, started_at, last_message_at, message_count, created_at)
                 VALUES (@Id, @UserId, @Title, @StartedAt, @LastMessageAt, 0, @CreatedAt)";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
+            await using var connection = await _dataSource.OpenConnectionAsync();
             await connection.ExecuteAsync(sql, new
             {
                 Id = conversationId,
-                UserId = string.IsNullOrEmpty(userId) ? null : Guid.Parse(userId),
+                UserId = parsedUserId,
                 Title = title ?? "Chat Session",
                 StartedAt = now,
                 LastMessageAt = now,
                 CreatedAt = now
-            });
+            }, commandTimeout: CommandTimeoutSeconds);
 
-            _logger.LogInformation("Started conversation: {ConversationId}", conversationId);
+            _logger.LogInformation("Started conversation: {ConversationId} for user: {UserId}", conversationId, userId ?? "anonymous");
             return conversationId.ToString();
         }
         catch (Exception ex)
@@ -68,6 +83,12 @@ public class ConversationService : IConversationService
     public async Task SaveMessageAsync(string conversationId, string role, string content,
         EventSearchFilters? filters = null, List<EventDto>? suggestedEvents = null)
     {
+        if (!Guid.TryParse(conversationId, out var convId))
+        {
+            _logger.LogWarning("Invalid conversation ID format: {ConversationId}", conversationId);
+            return;
+        }
+
         try
         {
             var messageId = Guid.NewGuid();
@@ -81,17 +102,17 @@ public class ConversationService : IConversationService
             var filtersJson = filters != null ? JsonSerializer.Serialize(filters) : null;
             var eventsJson = suggestedEvents?.Count > 0 ? JsonSerializer.Serialize(suggestedEvents) : null;
 
-            using var connection = _dbConnectionFactory.CreateConnection();
+            await using var connection = await _dataSource.OpenConnectionAsync();
             await connection.ExecuteAsync(sql, new
             {
                 Id = messageId,
-                ConversationId = Guid.Parse(conversationId),
+                ConversationId = convId,
                 Role = role,
                 Content = content,
                 SearchFilters = filtersJson,
                 SuggestedEvents = eventsJson,
                 CreatedAt = now
-            });
+            }, commandTimeout: CommandTimeoutSeconds);
 
             // Update conversation last message time and message count
             const string updateSql = @"
@@ -101,11 +122,11 @@ public class ConversationService : IConversationService
 
             await connection.ExecuteAsync(updateSql, new
             {
-                ConversationId = Guid.Parse(conversationId),
+                ConversationId = convId,
                 LastMessageAt = now
-            });
+            }, commandTimeout: CommandTimeoutSeconds);
 
-            _logger.LogInformation("Saved message to conversation: {ConversationId}", conversationId);
+            _logger.LogDebug("Saved message to conversation: {ConversationId}", conversationId);
         }
         catch (Exception ex)
         {
@@ -119,6 +140,12 @@ public class ConversationService : IConversationService
     /// </summary>
     public async Task EndConversationAsync(string conversationId)
     {
+        if (!Guid.TryParse(conversationId, out var convId))
+        {
+            _logger.LogWarning("Invalid conversation ID format: {ConversationId}", conversationId);
+            return;
+        }
+
         try
         {
             const string sql = @"
@@ -126,14 +153,14 @@ public class ConversationService : IConversationService
                 SET ended_at = @EndedAt
                 WHERE id = @ConversationId";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
-            await connection.ExecuteAsync(sql, new
+            await using var connection = await _dataSource.OpenConnectionAsync();
+            var rowsAffected = await connection.ExecuteAsync(sql, new
             {
-                ConversationId = Guid.Parse(conversationId),
+                ConversationId = convId,
                 EndedAt = DateTime.UtcNow
-            });
+            }, commandTimeout: CommandTimeoutSeconds);
 
-            _logger.LogInformation("Ended conversation: {ConversationId}", conversationId);
+            _logger.LogInformation("Ended conversation: {ConversationId} (rows updated: {RowsAffected})", conversationId, rowsAffected);
         }
         catch (Exception ex)
         {
@@ -143,24 +170,34 @@ public class ConversationService : IConversationService
     }
 
     /// <summary>
-    /// Get conversation history
+    /// Get conversation history with limit to prevent memory issues
     /// </summary>
     public async Task<List<(string role, string content, DateTime timestamp)>> GetConversationHistoryAsync(string conversationId)
     {
+        if (!Guid.TryParse(conversationId, out var convId))
+        {
+            _logger.LogWarning("Invalid conversation ID format: {ConversationId}", conversationId);
+            return [];
+        }
+
         try
         {
             const string sql = @"
                 SELECT role, content, created_at
                 FROM conversation_messages
                 WHERE conversation_id = @ConversationId
-                ORDER BY created_at ASC";
+                ORDER BY created_at ASC
+                LIMIT @MaxLimit";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
+            await using var connection = await _dataSource.OpenConnectionAsync();
             var results = await connection.QueryAsync<(string role, string content, DateTime timestamp)>(
                 sql, 
-                new { ConversationId = Guid.Parse(conversationId) });
+                new { ConversationId = convId, MaxLimit = MaxHistoryLimit },
+                commandTimeout: CommandTimeoutSeconds);
 
-            return results.ToList();
+            var messages = results.ToList();
+            _logger.LogDebug("Retrieved {Count} messages for conversation: {ConversationId}", messages.Count, conversationId);
+            return messages;
         }
         catch (Exception ex)
         {

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.AI;
+using Npgsql;
 using Ventixe.AI.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,43 +17,32 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 2. Database Configuration
+// 2. Database Configuration with Connection Pooling
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not configured!");
-builder.Services.AddSingleton<IDbConnectionFactory>(new DbConnectionFactory(builder.Configuration));
 
-// 3. AI/LLM Configuration - Using OpenAI or Local LLM
-var openAiApiKey = builder.Configuration["OpenAI:ApiKey"]
-    ?? builder.Configuration["OpenAI__ApiKey"];
+// Create NpgsqlDataSource for automatic connection pooling
+var dataSource = new NpgsqlDataSourceBuilder(connectionString)
+    .EnableParameterLogging()
+    .Build();
 
-if (!string.IsNullOrEmpty(openAiApiKey))
-{
-    // Using OpenAI GPT-4 (recommended for production)
-    builder.Services.AddChatClient(
-        new OpenAIChatClient("gpt-4-turbo", openAiApiKey));
-}
-else
-{
-    // Fallback: Using ollama or local LLM (for development)
-    var ollamaEndpoint = builder.Configuration["Ollama:Endpoint"] 
-        ?? builder.Configuration["Ollama__Endpoint"]
-        ?? "http://localhost:11434";
-    
-    builder.Services.AddChatClient(
-        new OllamaChatClient(new Uri(ollamaEndpoint), "neural-chat"));
-}
-
-// 4. Register Application Services
+builder.Services.AddSingleton(dataSource);
 builder.Services.AddScoped<IEventSearchService, EventSearchService>();
 builder.Services.AddScoped<IConversationService, ConversationService>();
 builder.Services.AddScoped<IEventDiscoveryAgent, EventDiscoveryAgent>();
 
-// 5. Logging
+// 3. AI/LLM Configuration
+// Using a simple in-memory chat client for development
+// In production, add: .AddOpenAIChatClient(o => o.ApiKey = "your-api-key")
+var simpleChatClient = new SimpleChatClient();
+builder.Services.AddSingleton<IChatClient>(simpleChatClient);
+
+// 4. Logging
 builder.Services.AddLogging();
 
 var app = builder.Build();
 
-// 6. Pipeline
+// 5. Pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -64,3 +54,28 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+/// <summary>
+/// Simple in-memory chat client for development/testing
+/// </summary>
+public class SimpleChatClient : IChatClient
+{
+    public ChatClientMetadata Metadata => new("simple-dev-model");
+
+    public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        // Return a simple response
+        var response = "I'm an AI assistant. Please configure a real LLM provider for production use.";
+        await Task.Delay(50, cancellationToken); // Simulate processing
+        return new ChatResponse(new ChatMessage(ChatRole.Assistant, response));
+    }
+
+    public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("Streaming not implemented in dev mode");
+    }
+
+    public object? GetService(Type serviceType, object? serviceKey = null) => null;
+
+    public void Dispose() { }
+}

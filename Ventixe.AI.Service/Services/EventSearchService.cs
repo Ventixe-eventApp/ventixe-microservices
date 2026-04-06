@@ -1,4 +1,5 @@
 using Dapper;
+using Npgsql;
 using Ventixe.AI.Service.Models;
 
 namespace Ventixe.AI.Service.Services;
@@ -21,13 +22,20 @@ public interface IEventSearchService
 
 public class EventSearchService : IEventSearchService
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly NpgsqlDataSource _dataSource;
     private readonly ILogger<EventSearchService> _logger;
+    private const int CommandTimeoutSeconds = 10;
+    private const int MaxResults = 50;
 
-    public EventSearchService(IDbConnectionFactory dbConnectionFactory, ILogger<EventSearchService> logger)
+    // Column selection constant to avoid duplication
+    private const string EventSelectColumns = @"
+        Id, EventName, ArtistName, Description, Location, 
+        StartDate, Price, AvailableTickets, Category";
+
+    public EventSearchService(NpgsqlDataSource dataSource, ILogger<EventSearchService> logger)
     {
-        _dbConnectionFactory = dbConnectionFactory;
-        _logger = logger;
+        _dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -35,21 +43,30 @@ public class EventSearchService : IEventSearchService
     /// </summary>
     public async Task<List<EventDto>> SearchByMusicGenreAsync(string genre)
     {
+        if (string.IsNullOrWhiteSpace(genre))
+            return [];
+
         try
         {
-            const string sql = @"
-                SELECT 
-                    Id, EventName, ArtistName, Description, Location, 
-                    StartDate, Price, AvailableTickets, Category
+            var sql = $@"
+                SELECT {EventSelectColumns}
                 FROM events
-                WHERE LOWER(ArtistName) LIKE LOWER(@Genre) 
-                   OR LOWER(Description) LIKE LOWER(@Genre)
-                   OR LOWER(Category) LIKE LOWER(@Genre)
+                WHERE LOWER(ArtistName) LIKE LOWER(@Genre) ESCAPE '\'
+                   OR LOWER(Description) LIKE LOWER(@Genre) ESCAPE '\'
+                   OR LOWER(Category) LIKE LOWER(@Genre) ESCAPE '\'
                 ORDER BY StartDate ASC
-                LIMIT 50";
+                LIMIT @MaxResults";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
-            var result = (await connection.QueryAsync<EventDto>(sql, new { Genre = $"%{genre}%" })).ToList();
+            // Escape LIKE special characters to prevent DoS
+            var escapedGenre = EscapeLikePattern(genre);
+            
+            await using var connection = await _dataSource.OpenConnectionAsync();
+            using var command = connection.CreateCommand();
+            command.CommandTimeout = CommandTimeoutSeconds;
+
+            var result = (await connection.QueryAsync<EventDto>(sql, 
+                new { Genre = $"%{escapedGenre}%", MaxResults = MaxResults },
+                commandTimeout: CommandTimeoutSeconds)).ToList();
             
             _logger.LogInformation("Found {Count} events for genre: {Genre}", result.Count, genre);
             return result;
@@ -66,19 +83,24 @@ public class EventSearchService : IEventSearchService
     /// </summary>
     public async Task<List<EventDto>> SearchByCityAsync(string city)
     {
+        if (string.IsNullOrWhiteSpace(city))
+            return [];
+
         try
         {
-            const string sql = @"
-                SELECT 
-                    Id, EventName, ArtistName, Description, Location, 
-                    StartDate, Price, AvailableTickets, Category
+            var sql = $@"
+                SELECT {EventSelectColumns}
                 FROM events
-                WHERE LOWER(Location) LIKE LOWER(@City)
+                WHERE LOWER(Location) LIKE LOWER(@City) ESCAPE '\'
                 ORDER BY StartDate ASC
-                LIMIT 50";
+                LIMIT @MaxResults";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
-            var result = (await connection.QueryAsync<EventDto>(sql, new { City = $"%{city}%" })).ToList();
+            var escapedCity = EscapeLikePattern(city);
+            
+            await using var connection = await _dataSource.OpenConnectionAsync();
+            var result = (await connection.QueryAsync<EventDto>(sql,
+                new { City = $"%{escapedCity}%", MaxResults = MaxResults },
+                commandTimeout: CommandTimeoutSeconds)).ToList();
             
             _logger.LogInformation("Found {Count} events in city: {City}", result.Count, city);
             return result;
@@ -95,20 +117,26 @@ public class EventSearchService : IEventSearchService
     /// </summary>
     public async Task<List<EventDto>> SearchByDateRangeAsync(DateTime fromDate, DateTime toDate)
     {
+        if (toDate < fromDate)
+        {
+            _logger.LogWarning("Invalid date range: fromDate {FromDate} > toDate {ToDate}", fromDate, toDate);
+            return [];
+        }
+
         try
         {
-            const string sql = @"
-                SELECT 
-                    Id, EventName, ArtistName, Description, Location, 
-                    StartDate, Price, AvailableTickets, Category
+            var sql = $@"
+                SELECT {EventSelectColumns}
                 FROM events
                 WHERE StartDate >= @FromDate 
                   AND StartDate <= @ToDate
                 ORDER BY StartDate ASC
-                LIMIT 50";
+                LIMIT @MaxResults";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
-            var result = (await connection.QueryAsync<EventDto>(sql, new { FromDate = fromDate, ToDate = toDate })).ToList();
+            await using var connection = await _dataSource.OpenConnectionAsync();
+            var result = (await connection.QueryAsync<EventDto>(sql,
+                new { FromDate = fromDate, ToDate = toDate, MaxResults = MaxResults },
+                commandTimeout: CommandTimeoutSeconds)).ToList();
             
             _logger.LogInformation("Found {Count} events between {FromDate} and {ToDate}", result.Count, fromDate, toDate);
             return result;
@@ -131,10 +159,8 @@ public class EventSearchService : IEventSearchService
     {
         try
         {
-            var sql = @"
-                SELECT 
-                    Id, EventName, ArtistName, Description, Location, 
-                    StartDate, Price, AvailableTickets, Category
+            var sql = $@"
+                SELECT {EventSelectColumns}
                 FROM events
                 WHERE 1 = 1";
 
@@ -142,14 +168,16 @@ public class EventSearchService : IEventSearchService
 
             if (!string.IsNullOrEmpty(city))
             {
-                sql += " AND LOWER(Location) LIKE LOWER(@City)";
-                parameters.Add("@City", $"%{city}%");
+                sql += " AND LOWER(Location) LIKE LOWER(@City) ESCAPE '\\'";
+                var escapedCity = EscapeLikePattern(city);
+                parameters.Add("@City", $"%{escapedCity}%");
             }
 
             if (!string.IsNullOrEmpty(musicGenre))
             {
-                sql += " AND (LOWER(ArtistName) LIKE LOWER(@Genre) OR LOWER(Category) LIKE LOWER(@Genre))";
-                parameters.Add("@Genre", $"%{musicGenre}%");
+                sql += " AND (LOWER(ArtistName) LIKE LOWER(@Genre) ESCAPE '\\' OR LOWER(Category) LIKE LOWER(@Genre) ESCAPE '\\')";
+                var escapedGenre = EscapeLikePattern(musicGenre);
+                parameters.Add("@Genre", $"%{escapedGenre}%");
             }
 
             if (fromDate.HasValue)
@@ -164,10 +192,12 @@ public class EventSearchService : IEventSearchService
                 parameters.Add("@ToDate", toDate.Value);
             }
 
-            sql += " ORDER BY StartDate ASC LIMIT 50";
+            sql += $" ORDER BY StartDate ASC LIMIT @MaxResults";
+            parameters.Add("@MaxResults", MaxResults);
 
-            using var connection = _dbConnectionFactory.CreateConnection();
-            var result = (await connection.QueryAsync<EventDto>(sql, parameters)).ToList();
+            await using var connection = await _dataSource.OpenConnectionAsync();
+            var result = (await connection.QueryAsync<EventDto>(sql, parameters,
+                commandTimeout: CommandTimeoutSeconds)).ToList();
             
             _logger.LogInformation("Combined search found {Count} events", result.Count);
             return result;
@@ -184,17 +214,23 @@ public class EventSearchService : IEventSearchService
     /// </summary>
     public async Task<EventDto?> GetEventDetailsAsync(string eventId)
     {
+        if (string.IsNullOrWhiteSpace(eventId) || !Guid.TryParse(eventId, out _))
+        {
+            _logger.LogWarning("Invalid event ID format: {EventId}", eventId);
+            return null;
+        }
+
         try
         {
-            const string sql = @"
-                SELECT 
-                    Id, EventName, ArtistName, Description, Location, 
-                    StartDate, Price, AvailableTickets, Category
+            var sql = $@"
+                SELECT {EventSelectColumns}
                 FROM events
                 WHERE Id = @EventId";
 
-            using var connection = _dbConnectionFactory.CreateConnection();
-            var result = await connection.QueryFirstOrDefaultAsync<EventDto>(sql, new { EventId = eventId });
+            await using var connection = await _dataSource.OpenConnectionAsync();
+            var result = await connection.QueryFirstOrDefaultAsync<EventDto>(sql,
+                new { EventId = eventId },
+                commandTimeout: CommandTimeoutSeconds);
             
             if (result != null)
                 _logger.LogInformation("Retrieved details for event: {EventId}", eventId);
@@ -208,5 +244,19 @@ public class EventSearchService : IEventSearchService
             _logger.LogError(ex, "Error getting event details for: {EventId}", eventId);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Escape special LIKE pattern characters to prevent injection and DoS
+    /// </summary>
+    private static string EscapeLikePattern(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        return input
+            .Replace("\\", "\\\\")  // Backslash first
+            .Replace("%", "\\%")    // Percent
+            .Replace("_", "\\_");   // Underscore
     }
 }
